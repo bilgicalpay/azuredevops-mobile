@@ -33,6 +33,7 @@ class BackgroundWorkerService {
         initialNotificationTitle: 'Azure DevOps',
         initialNotificationContent: 'Work item kontrolü aktif',
         foregroundServiceNotificationId: 888,
+        autoStartOnBoot: true, // Start service on device boot
       ),
       iosConfiguration: IosConfiguration(
         autoStart: true,
