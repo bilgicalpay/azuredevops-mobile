@@ -47,22 +47,32 @@ class NotificationService {
         return;
       }
 
-      // Create notification channel for Android
-      const androidChannel = AndroidNotificationChannel(
-        'work_items',
-        'Work Items',
-        description: 'Notifications for Azure DevOps work items',
-        importance: Importance.high,
-        enableVibration: true,
-        playSound: true,
-      );
-
       final androidPlugin = _localNotifications
           .resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin>();
       
       if (androidPlugin != null) {
-        await androidPlugin.createNotificationChannel(androidChannel);
+        // Create notification channel for work items
+        const workItemsChannel = AndroidNotificationChannel(
+          'work_items',
+          'Work Items',
+          description: 'Notifications for Azure DevOps work items',
+          importance: Importance.high,
+          enableVibration: true,
+          playSound: true,
+        );
+        await androidPlugin.createNotificationChannel(workItemsChannel);
+        
+        // Create notification channel for foreground service (Android 15+)
+        const foregroundChannel = AndroidNotificationChannel(
+          'work_item_check',
+          'Work Item Check',
+          description: 'Background service for checking work item updates',
+          importance: Importance.low, // Low importance for foreground service
+          enableVibration: false,
+          playSound: false,
+        );
+        await androidPlugin.createNotificationChannel(foregroundChannel);
         
         // Request permissions (Android 13+)
         final granted = await androidPlugin.requestNotificationsPermission();
