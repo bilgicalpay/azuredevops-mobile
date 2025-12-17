@@ -180,23 +180,30 @@ Future<void> _checkForWorkItems(ServiceInstance service) async {
       },
     );
 
-    // Load tracking data
-    final knownWorkItemIds = prefs.getStringList('known_work_item_ids')?.map((e) => int.parse(e)).toSet() ?? <int>{};
+    // Load tracking data from SharedPreferences (persistent storage)
+    final knownWorkItemIdsStr = prefs.getStringList('bg_known_work_item_ids') ?? [];
+    final knownWorkItemIds = knownWorkItemIdsStr.map((e) => int.tryParse(e)).whereType<int>().toSet();
     final workItemRevisions = <int, int>{};
     final workItemAssignees = <int, String?>{};
     final workItemChangedDates = <int, DateTime?>{};
     
-    // Load revision data
+    // Load revision data from persistent storage
     for (final id in knownWorkItemIds) {
-      final rev = prefs.getInt('work_item_rev_$id');
+      final rev = prefs.getInt('bg_work_item_rev_$id');
       if (rev != null) workItemRevisions[id] = rev;
       
-      final assignee = prefs.getString('work_item_assignee_$id');
+      final assignee = prefs.getString('bg_work_item_assignee_$id');
       workItemAssignees[id] = assignee;
       
-      final changedDateStr = prefs.getString('work_item_changed_date_$id');
+      final changedDateStr = prefs.getString('bg_work_item_changed_date_$id');
       if (changedDateStr != null) {
         workItemChangedDates[id] = DateTime.tryParse(changedDateStr);
+      }
+      
+      // Load last notified revision
+      final lastNotifiedRev = prefs.getInt('bg_notified_rev_$id');
+      if (lastNotifiedRev != null && lastNotifiedRev >= (workItemRevisions[id] ?? 0)) {
+        // Already notified for this revision
       }
     }
 
@@ -222,13 +229,23 @@ Future<void> _checkForWorkItems(ServiceInstance service) async {
           body: 'Size yeni bir work item atandı: ${workItem.type}',
         );
         
-        // Update tracking
+        // Update tracking and save to persistent storage immediately
         knownWorkItemIds.add(workItem.id);
         workItemRevisions[workItem.id] = currentRev;
         workItemAssignees[workItem.id] = currentAssignee;
         if (currentChangedDate != null) {
           workItemChangedDates[workItem.id] = currentChangedDate;
         }
+        
+        // Save to SharedPreferences immediately
+        await prefs.setInt('bg_work_item_rev_${workItem.id}', currentRev);
+        if (currentAssignee != null) {
+          await prefs.setString('bg_work_item_assignee_${workItem.id}', currentAssignee);
+        }
+        if (currentChangedDate != null) {
+          await prefs.setString('bg_work_item_changed_date_${workItem.id}', currentChangedDate.toIso8601String());
+        }
+        await prefs.setInt('bg_notified_rev_${workItem.id}', currentRev);
       } else {
         // Check for changes
         bool shouldNotify = false;
@@ -277,46 +294,61 @@ Future<void> _checkForWorkItems(ServiceInstance service) async {
             title: workItem.title,
             body: notificationBody,
           );
+          
+          // Save notified revision to prevent duplicate notifications
+          await prefs.setInt('bg_notified_rev_${workItem.id}', currentRev);
         }
         
-        // Update tracking
+        // Update tracking and save to persistent storage
         workItemRevisions[workItem.id] = currentRev;
         workItemAssignees[workItem.id] = currentAssignee;
         if (currentChangedDate != null) {
           workItemChangedDates[workItem.id] = currentChangedDate;
         }
+        
+        // Save to SharedPreferences
+        await prefs.setInt('bg_work_item_rev_${workItem.id}', currentRev);
+        if (currentAssignee != null) {
+          await prefs.setString('bg_work_item_assignee_${workItem.id}', currentAssignee);
+        } else {
+          await prefs.remove('bg_work_item_assignee_${workItem.id}');
+        }
+        if (currentChangedDate != null) {
+          await prefs.setString('bg_work_item_changed_date_${workItem.id}', currentChangedDate.toIso8601String());
+        } else {
+          await prefs.remove('bg_work_item_changed_date_${workItem.id}');
+        }
       }
     }
 
-    // Save tracking data
-    await prefs.setStringList('known_work_item_ids', knownWorkItemIds.map((e) => e.toString()).toList());
-    for (final entry in workItemRevisions.entries) {
-      await prefs.setInt('work_item_rev_${entry.key}', entry.value);
-    }
-    for (final entry in workItemAssignees.entries) {
-      if (entry.value != null) {
-        await prefs.setString('work_item_assignee_${entry.key}', entry.value!);
+    // Save tracking data to persistent storage (with bg_ prefix)
+    final updatedKnownWorkItemIds = workItems.map((item) => item.id).toSet();
+    await prefs.setStringList('bg_known_work_item_ids', updatedKnownWorkItemIds.map((e) => e.toString()).toList());
+    
+    for (final workItem in workItems) {
+      await prefs.setInt('bg_work_item_rev_${workItem.id}', workItem.rev ?? 0);
+      if (workItem.assignedTo != null) {
+        await prefs.setString('bg_work_item_assignee_${workItem.id}', workItem.assignedTo!);
       } else {
-        await prefs.remove('work_item_assignee_${entry.key}');
+        await prefs.remove('bg_work_item_assignee_${workItem.id}');
       }
-    }
-    for (final entry in workItemChangedDates.entries) {
-      if (entry.value != null) {
-        await prefs.setString('work_item_changed_date_${entry.key}', entry.value!.toIso8601String());
+      if (workItem.changedDate != null) {
+        await prefs.setString('bg_work_item_changed_date_${workItem.id}', workItem.changedDate!.toIso8601String());
       } else {
-        await prefs.remove('work_item_changed_date_${entry.key}');
+        await prefs.remove('bg_work_item_changed_date_${workItem.id}');
       }
     }
 
     // Remove tracking for items no longer assigned
-    final currentIds = workItems.map((item) => item.id).toSet();
-    for (final id in knownWorkItemIds) {
-      if (!currentIds.contains(id)) {
-        await prefs.remove('work_item_rev_$id');
-        await prefs.remove('work_item_assignee_$id');
-        await prefs.remove('work_item_changed_date_$id');
-      }
+    final oldIds = knownWorkItemIds.difference(updatedKnownWorkItemIds);
+    for (final id in oldIds) {
+      await prefs.remove('bg_work_item_rev_$id');
+      await prefs.remove('bg_work_item_assignee_$id');
+      await prefs.remove('bg_work_item_changed_date_$id');
+      await prefs.remove('bg_notified_rev_$id');
     }
+    
+    print('💾 [BackgroundWorker] Saved tracking data to persistent storage (${updatedKnownWorkItemIds.length} items)');
 
     if (hasChanges) {
       print('✅ [BackgroundWorker] Changes detected and notifications sent');
