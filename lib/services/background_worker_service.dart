@@ -155,13 +155,37 @@ Future<void> _checkForWorkItems(ServiceInstance service) async {
     final serverUrl = prefs.getString('server_url');
     final collection = prefs.getString('collection');
     
-    const secureStorage = FlutterSecureStorage();
-    final token = await secureStorage.read(key: 'auth_token');
+    // Use FlutterSecureStorage with proper Android options for background service
+    const secureStorage = FlutterSecureStorage(
+      aOptions: AndroidOptions(
+        encryptedSharedPreferences: true,
+        sharedPreferencesName: 'FlutterSecureStorage',
+        preferencesKeyPrefix: 'flutter_secure_storage_',
+      ),
+    );
+    
+    String? token;
+    try {
+      token = await secureStorage.read(key: 'auth_token');
+      print('🔑 [BackgroundWorker] Token read: ${token != null ? "✓ (${token.length} chars)" : "✗"}');
+    } catch (e) {
+      print('❌ [BackgroundWorker] Error reading token: $e');
+      token = null;
+    }
     
     if (serverUrl == null || token == null) {
-      print('❌ [BackgroundWorker] No auth data available');
+      print('❌ [BackgroundWorker] No auth data available - serverUrl: ${serverUrl != null ? "✓" : "✗"}, token: ${token != null ? "✓" : "✗"}');
+      // Update notification to show the issue
+      if (service is AndroidServiceInstance) {
+        service.setForegroundNotificationInfo(
+          title: 'Azure DevOps',
+          content: 'Auth data eksik - uygulamayı açın',
+        );
+      }
       return;
     }
+    
+    print('✅ [BackgroundWorker] Auth data available - serverUrl: ✓, token: ✓');
 
     // Initialize notification service
     await NotificationService().init();
