@@ -1,0 +1,83 @@
+# Fastfile for Azure DevOps OnPrem Mobile App
+# Android build and deployment automation
+
+default_platform(:android)
+
+platform :android do
+  desc "Build Android APK"
+  lane :build_apk do
+    gradle(
+      task: "assembleRelease",
+      project_dir: "android"
+    )
+  end
+
+  desc "Build Android App Bundle (AAB)"
+  lane :build_aab do
+    gradle(
+      task: "bundleRelease",
+      project_dir: "android"
+    )
+  end
+
+  desc "Run Flutter tests"
+  lane :test do
+    sh("flutter pub get")
+    sh("flutter test")
+  end
+
+  desc "Run Flutter analyze"
+  lane :analyze do
+    sh("flutter pub get")
+    sh("flutter analyze")
+  end
+
+  desc "Build and deploy to internal testing"
+  lane :beta do
+    # Get dependencies
+    sh("flutter pub get")
+    
+    # Run tests
+    test
+    
+    # Build APK
+    build_apk
+    
+    # Optional: Upload to Firebase App Distribution or similar
+    # firebase_app_distribution(
+    #   app: "your-app-id",
+    #   apk_path: "build/app/outputs/flutter-apk/app-release.apk"
+    # )
+  end
+
+  desc "Build and deploy to production"
+  lane :release do
+    # Get dependencies
+    sh("flutter pub get")
+    
+    # Run tests
+    test
+    
+    # Run analyze
+    analyze
+    
+    # Build App Bundle for Play Store
+    build_aab
+    
+    # Optional: Upload to Google Play Store
+    # upload_to_play_store(
+    #   track: "production",
+    #   aab: "build/app/outputs/bundle/release/app-release.aab"
+    # )
+  end
+
+  desc "Clean build artifacts"
+  lane :clean do
+    sh("flutter clean")
+    gradle(
+      task: "clean",
+      project_dir: "android"
+    )
+  end
+end
+

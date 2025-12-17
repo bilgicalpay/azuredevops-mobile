@@ -1,0 +1,132 @@
+# GitLab CI/CD Pipeline for Azure DevOps OnPrem Mobile App
+# Flutter Android build and deployment
+
+stages:
+  - test
+  - build
+  - deploy
+
+variables:
+  FLUTTER_VERSION: "3.24.0"
+  JAVA_VERSION: "17"
+  ANDROID_SDK_TOOLS: "9477386"
+
+# Cache configuration
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - .flutter/
+    - .pub-cache/
+    - android/.gradle/
+    - build/
+
+# Setup Flutter environment
+.flutter_setup: &flutter_setup
+  before_script:
+    - export PATH="$PATH:/usr/lib/dart/bin"
+    - export JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
+    - |
+      if ! command -v flutter &> /dev/null; then
+        echo "Installing Flutter..."
+        git clone https://github.com/flutter/flutter.git -b ${FLUTTER_VERSION} --depth 1 $CI_PROJECT_DIR/.flutter
+        export PATH="$CI_PROJECT_DIR/.flutter/bin:$PATH"
+      fi
+    - flutter --version
+    - flutter doctor -v
+    - flutter pub get
+
+# Test stage
+test:lint:
+  stage: test
+  <<: *flutter_setup
+  script:
+    - flutter analyze
+  only:
+    - merge_requests
+    - main
+    - develop
+
+test:unit:
+  stage: test
+  <<: *flutter_setup
+  script:
+    - flutter test
+  only:
+    - merge_requests
+    - main
+    - develop
+
+# Build stage
+build:apk:
+  stage: build
+  <<: *flutter_setup
+  script:
+    - flutter build apk --release
+    - ls -lh build/app/outputs/flutter-apk/
+  artifacts:
+    paths:
+      - build/app/outputs/flutter-apk/app-release.apk
+    expire_in: 1 week
+    reports:
+      junit: build/test-results/test/TEST-*.xml
+  only:
+    - main
+    - develop
+    - tags
+
+build:aab:
+  stage: build
+  <<: *flutter_setup
+  script:
+    - flutter build appbundle --release
+    - ls -lh build/app/outputs/bundle/release/
+  artifacts:
+    paths:
+      - build/app/outputs/bundle/release/app-release.aab
+    expire_in: 1 week
+  only:
+    - tags
+    - main
+
+# Deploy stage (using Fastlane)
+deploy:beta:
+  stage: deploy
+  <<: *flutter_setup
+  dependencies:
+    - build:apk
+  before_script:
+    - gem install fastlane
+  script:
+    - fastlane android beta
+  only:
+    - develop
+  when: manual
+
+deploy:production:
+  stage: deploy
+  <<: *flutter_setup
+  dependencies:
+    - build:aab
+  before_script:
+    - gem install fastlane
+  script:
+    - fastlane android release
+  only:
+    - tags
+    - main
+  when: manual
+
+# Docker image for faster builds (optional)
+image: ubuntu:22.04
+
+before_script:
+  - apt-get update -qq
+  - apt-get install -y -qq git curl unzip xz-utils zip libglu1-mesa openjdk-${JAVA_VERSION}-jdk
+  - |
+    if [ ! -d "$CI_PROJECT_DIR/.flutter" ]; then
+      git clone https://github.com/flutter/flutter.git -b ${FLUTTER_VERSION} --depth 1 $CI_PROJECT_DIR/.flutter
+    fi
+  - export PATH="$CI_PROJECT_DIR/.flutter/bin:$PATH"
+  - export JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
+  - flutter doctor -v
+
