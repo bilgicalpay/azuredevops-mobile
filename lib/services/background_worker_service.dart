@@ -28,10 +28,10 @@ class BackgroundWorkerService {
       androidConfiguration: AndroidConfiguration(
         onStart: onStart,
         autoStart: true,
-        isForegroundMode: false,
+        isForegroundMode: true, // Android 15 requires foreground service
         notificationChannelId: notificationChannelId,
         initialNotificationTitle: 'Azure DevOps',
-        initialNotificationContent: 'Work item kontrolü çalışıyor',
+        initialNotificationContent: 'Work item kontrolü aktif',
         foregroundServiceNotificationId: 888,
       ),
       iosConfiguration: IosConfiguration(
@@ -82,63 +82,66 @@ Future<bool> onIosBackground(ServiceInstance service) async {
 void onStart(ServiceInstance service) async {
   DartPluginRegistrant.ensureInitialized();
   
+  print('🚀 [BackgroundWorker] Service onStart called');
+  
   if (service is AndroidServiceInstance) {
+    // Set as foreground service immediately (required for Android 15)
+    service.setAsForegroundService();
+    print('✅ [BackgroundWorker] Set as foreground service');
+    
     service.on('setAsForeground').listen((event) {
       service.setAsForegroundService();
     });
     
     service.on('setAsBackground').listen((event) {
-      service.setAsBackgroundService();
+      // Don't set as background on Android 15 - keep as foreground
+      print('⚠️ [BackgroundWorker] Background mode requested but keeping foreground for Android 15');
     });
   }
   
   service.on('stopService').listen((event) {
+    print('🛑 [BackgroundWorker] Stop service requested');
     service.stopSelf();
   });
   
-  // Main loop - check for work items periodically
-  Timer? checkTimer;
+  // Get polling interval from settings
+  final prefs = await SharedPreferences.getInstance();
+  final pollingIntervalSeconds = prefs.getInt('polling_interval_seconds') ?? 15;
+  final clampedInterval = pollingIntervalSeconds.clamp(5, 300);
   
-  service.on('startCheck').listen((event) async {
-    // Get polling interval from settings
-    final prefs = await SharedPreferences.getInstance();
-    final pollingIntervalSeconds = prefs.getInt('polling_interval_seconds') ?? 15;
-    
-    // Cancel existing timer
-    checkTimer?.cancel();
-    
-    // Start periodic checks
-    checkTimer = Timer.periodic(Duration(seconds: pollingIntervalSeconds), (timer) async {
+  print('⏰ [BackgroundWorker] Polling interval: ${clampedInterval} seconds');
+  
+  // Update foreground notification immediately
+  if (service is AndroidServiceInstance) {
+    service.setForegroundNotificationInfo(
+      title: 'Azure DevOps',
+      content: 'Work item kontrolü aktif',
+    );
+  }
+  
+  // Start periodic checks
+  Timer.periodic(Duration(seconds: clampedInterval), (timer) async {
+    try {
       if (service is AndroidServiceInstance) {
-        if (await service.isForegroundService()) {
-          service.setForegroundNotificationInfo(
-            title: 'Azure DevOps',
-            content: 'Work item kontrolü yapılıyor...',
-          );
-        }
-      }
-      
-      await _checkForWorkItems(service);
-    });
-    
-    // Do immediate check
-    await _checkForWorkItems(service);
-  });
-  
-  // Start checking immediately
-  service.invoke('startCheck');
-  
-  // Keep service alive
-  Timer.periodic(const Duration(seconds: 1), (timer) async {
-    if (service is AndroidServiceInstance) {
-      if (await service.isForegroundService()) {
+        final now = DateTime.now();
         service.setForegroundNotificationInfo(
           title: 'Azure DevOps',
-          content: 'Work item kontrolü aktif',
+          content: 'Son kontrol: ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}',
         );
       }
+      
+      print('🔄 [BackgroundWorker] Periodic check started at ${DateTime.now()}...');
+      await _checkForWorkItems(service);
+    } catch (e) {
+      print('❌ [BackgroundWorker] Error in periodic check: $e');
     }
   });
+  
+  // Do immediate check
+  print('🔄 [BackgroundWorker] Performing immediate check...');
+  await _checkForWorkItems(service);
+  
+  print('✅ [BackgroundWorker] Service started successfully with ${clampedInterval}s interval');
 }
 
 /// Check for work item changes
