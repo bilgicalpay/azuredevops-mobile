@@ -1,0 +1,10 @@
+# Appfile for Fastlane
+# Configure your app identifiers here
+
+# Android package name
+package_name("io.purplesoft.azuredevops_onprem")
+
+# Optional: Google Play Store configuration
+# json_key_file("path/to/your/google-play-service-account-key.json")
+# track("internal") # or "alpha", "beta", "production"
+
