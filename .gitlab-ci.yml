@@ -36,9 +36,28 @@ cache:
     - flutter pub get
 
 # Test stage
+update:dependencies:
+  stage: test
+  <<: *flutter_setup
+  script:
+    - chmod +x scripts/update_dependencies.sh
+    - ./scripts/update_dependencies.sh
+  artifacts:
+    paths:
+      - dependency_update_report.md
+      - dependency_check.txt
+      - security_audit_dependencies.txt
+    expire_in: 1 day
+  only:
+    - merge_requests
+    - main
+    - develop
+
 test:lint:
   stage: test
   <<: *flutter_setup
+  needs:
+    - update:dependencies
   script:
     - flutter analyze
   only:
@@ -49,6 +68,8 @@ test:lint:
 test:unit:
   stage: test
   <<: *flutter_setup
+  needs:
+    - update:dependencies
   script:
     - flutter test
   only:

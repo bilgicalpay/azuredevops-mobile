@@ -373,6 +373,8 @@ jobs:
             release-assets/sbom.txt
             release-assets/security_report.md
             release-assets/security_audit.md
+            release-assets/security/comprehensive_audit.md
+            release-assets/dependencies/dependency_update_report.md
           draft: false
           prerelease: false
           make_latest: false
