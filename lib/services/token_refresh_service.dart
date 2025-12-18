@@ -43,15 +43,15 @@ class TokenRefreshService {
   }
 
   /// Refresh the authentication token
-  static Future<bool> _refreshToken() async {
+  static Future<bool> _refreshToken(StorageService storage) async {
     try {
       SecurityService.logTokenOperation('Refreshing token...');
       
       // Get current credentials
-      final serverUrl = await StorageService.getServerUrl();
-      final collection = await StorageService.getCollection();
-      final username = await StorageService.getUsername();
-      final currentToken = await StorageService.getToken();
+      final serverUrl = storage.getServerUrl();
+      final collection = storage.getCollection();
+      final username = storage.getUsername();
+      final currentToken = await storage.getToken();
 
       if (serverUrl == null || collection == null || username == null || currentToken == null) {
         SecurityService.logTokenOperation('Missing credentials for refresh', success: false);
@@ -76,14 +76,14 @@ class TokenRefreshService {
   }
 
   /// Set token expiry time
-  static Future<void> setTokenExpiry(DateTime expiryTime) async {
-    await StorageService.setTokenExpiry(expiryTime.millisecondsSinceEpoch);
+  static Future<void> setTokenExpiry(StorageService storage, DateTime expiryTime) async {
+    await storage.setTokenExpiry(expiryTime.millisecondsSinceEpoch);
     SecurityService.logTokenOperation('Token expiry set: $expiryTime');
   }
 
   /// Clear token and expiry
-  static Future<void> clearToken() async {
-    await StorageService.setTokenExpiry(null);
+  static Future<void> clearToken(StorageService storage) async {
+    await storage.setTokenExpiry(null);
     SecurityService.logTokenOperation('Token cleared');
   }
 }

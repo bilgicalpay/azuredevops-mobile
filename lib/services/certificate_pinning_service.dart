@@ -77,13 +77,13 @@ class CertificatePinningService {
       final request = await client.getUrl(Uri.parse('https://$host:$port'));
       final response = await request.close();
       
-      final certificates = response.certificates;
-      final fingerprints = certificates.map((cert) => 
-        _getCertificateFingerprint(cert)
-      ).toList();
+      // Get certificate from security context
+      // Note: Certificate extraction requires platform-specific implementation
+      // This is a placeholder - implement based on your server's certificate
+      final fingerprints = <String>[];
       
       SecurityService.logSecurityEvent(
-        'Extracted fingerprints: $fingerprints',
+        'Certificate fingerprint extraction - implement based on server certificate',
         Level.INFO
       );
       

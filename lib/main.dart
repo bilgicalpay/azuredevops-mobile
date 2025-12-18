@@ -23,6 +23,7 @@ import 'services/background_task_service.dart';
 import 'services/background_worker_service.dart';
 import 'services/security_service.dart';
 import 'services/token_refresh_service.dart';
+import 'package:logging/logging.dart';
 
 /// Uygulama giriş noktası
 /// Servisleri başlatır ve ana widget'ı çalıştırır
@@ -68,7 +69,7 @@ void main() async {
   backgroundService.start();
   
   // Ensure token is valid
-  await TokenRefreshService.ensureValidToken();
+  await TokenRefreshService.ensureValidToken(storage);
   
   runApp(MyApp(storage: storage));
 }
