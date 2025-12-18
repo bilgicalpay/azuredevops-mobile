@@ -9,7 +9,7 @@ pipeline {
     }
     
     environment {
-        FLUTTER_VERSION = '3.24.0'
+        FLUTTER_VERSION = '3.27.0'
         JAVA_HOME = tool('JDK-17')
         ANDROID_HOME = "${env.WORKSPACE}/android-sdk"
         PATH = "${env.JAVA_HOME}/bin:${env.ANDROID_HOME}/tools:${env.ANDROID_HOME}/platform-tools:${env.PATH}"
