@@ -223,7 +223,7 @@ jobs:
           ./scripts/generate_sbom.sh || true
 
       - name: Build APK
-        run: flutter build apk --release
+        run: flutter build apk --release --dart-define=PRODUCTION=true
 
       - name: Rename APK to azuredevops.apk
         run: |

@@ -9,10 +9,20 @@ class CertificatePinningService {
   static final Logger _logger = Logger('CertificatePinningService');
   
   // SHA-256 fingerprints of allowed certificates
-  // TODO: Replace with your actual server certificate fingerprints
+  // 
+  // To add your server's certificate fingerprint:
+  // 1. Run: ./scripts/extract_certificate_fingerprints.sh https://your-server.com
+  // 2. Copy the output fingerprint and add it below
+  // 3. For production builds, set PRODUCTION=true environment variable
+  //
+  // Example:
+  // static const List<String> _allowedFingerprints = [
+  //   'SHA256:ABC123...',  // Your Azure DevOps Server
+  //   'SHA256:XYZ789...',  // Load balancer certificate (if applicable)
+  // ];
   static const List<String> _allowedFingerprints = [
-    // Example: Add your Azure DevOps Server certificate fingerprints here
-    // 'SHA256:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+    // Add your certificate fingerprints here
+    // Use scripts/extract_certificate_fingerprints.sh to extract them
   ];
 
   /// Configure Dio with certificate pinning
@@ -70,24 +80,22 @@ class CertificatePinningService {
   }
 
   /// Extract certificate fingerprints from server
-  /// Run this once to get your server's certificate fingerprints
+  /// 
+  /// Note: This method is a placeholder. To extract fingerprints:
+  /// 1. Use the script: ./scripts/extract_certificate_fingerprints.sh https://your-server.com
+  /// 2. Or manually extract using openssl:
+  ///    echo | openssl s_client -connect server.com:443 -servername server.com 2>/dev/null | openssl x509 -fingerprint -sha256 -noout
+  /// 3. Add the fingerprint to _allowedFingerprints list
   static Future<List<String>> extractServerFingerprints(String host, int port) async {
     try {
-      final client = HttpClient();
-      final request = await client.getUrl(Uri.parse('https://$host:$port'));
-      final response = await request.close();
-      
-      // Get certificate from security context
-      // Note: Certificate extraction requires platform-specific implementation
-      // This is a placeholder - implement based on your server's certificate
-      final fingerprints = <String>[];
-      
       SecurityService.logSecurityEvent(
-        'Certificate fingerprint extraction - implement based on server certificate',
+        'Certificate fingerprint extraction - use scripts/extract_certificate_fingerprints.sh instead',
         Level.INFO
       );
       
-      return fingerprints;
+      // Return empty list - fingerprints should be extracted using the script
+      // and manually added to _allowedFingerprints
+      return [];
     } catch (e) {
       _logger.severe('Error extracting fingerprints: $e');
       return [];

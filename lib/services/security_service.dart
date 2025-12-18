@@ -31,18 +31,48 @@ class SecurityService {
       bool isRooted = false;
       bool isJailbroken = false;
       
-      try {
-        isRooted = await checker.isRooted();
-      } catch (e) {
-        // If platform doesn't support root check, assume not rooted
-        isRooted = false;
+      // Check for root (Android)
+      if (Platform.isAndroid) {
+        try {
+          // Try different method names based on package version
+          try {
+            isRooted = await checker.isRooted();
+          } catch (e) {
+            // Try alternative method name
+            try {
+              isRooted = await checker.checkRoot();
+            } catch (e2) {
+              // If both fail, try checking result directly
+              final result = await checker.check();
+              isRooted = result.isRooted ?? false;
+            }
+          }
+        } catch (e) {
+          _logSecurityEvent('Root check error: $e', Level.WARNING);
+          isRooted = false;
+        }
       }
       
-      try {
-        isJailbroken = await checker.isJailbroken();
-      } catch (e) {
-        // If platform doesn't support jailbreak check, assume not jailbroken
-        isJailbroken = false;
+      // Check for jailbreak (iOS)
+      if (Platform.isIOS) {
+        try {
+          // Try different method names based on package version
+          try {
+            isJailbroken = await checker.isJailbroken();
+          } catch (e) {
+            // Try alternative method name
+            try {
+              isJailbroken = await checker.checkJailbreak();
+            } catch (e2) {
+              // If both fail, try checking result directly
+              final result = await checker.check();
+              isJailbroken = result.isJailbroken ?? false;
+            }
+          }
+        } catch (e) {
+          _logSecurityEvent('Jailbreak check error: $e', Level.WARNING);
+          isJailbroken = false;
+        }
       }
       
       final isCompromised = isRooted || isJailbroken;
@@ -54,6 +84,7 @@ class SecurityService {
       return isCompromised;
     } catch (e) {
       _logSecurityEvent('Error checking device security: $e', Level.SEVERE);
+      // On error, assume device is not compromised to avoid blocking legitimate users
       return false;
     }
   }

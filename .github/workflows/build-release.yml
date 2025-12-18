@@ -250,7 +250,7 @@ jobs:
           ./scripts/generate_sbom.sh || true
 
       - name: Build APK
-        run: flutter build apk --release
+        run: flutter build apk --release --dart-define=PRODUCTION=true
 
       - name: Build AAB
         if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')

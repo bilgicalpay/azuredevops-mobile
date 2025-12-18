@@ -101,7 +101,7 @@ build:apk:
     - echo "📋 Generating SBOM..."
     - chmod +x scripts/generate_sbom.sh
     - ./scripts/generate_sbom.sh || true
-    - flutter build apk --release
+    - flutter build apk --release --dart-define=PRODUCTION=true
     - mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/azuredevops.apk || true
     - ls -lh build/app/outputs/flutter-apk/
   artifacts:

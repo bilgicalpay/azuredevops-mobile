@@ -211,7 +211,7 @@ jobs:
           pod install
 
       - name: Build iOS IPA
-        run: flutter build ipa --release
+        run: flutter build ipa --release --dart-define=PRODUCTION=true
 
       - name: Rename IPA to azuredevops.ipa
         run: |
