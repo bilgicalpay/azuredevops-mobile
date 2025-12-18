@@ -350,19 +350,19 @@ jobs:
 
       - name: Rename Android files
         run: |
-          TAG_NAME="${{ steps.tag.outputs.tag_name }}"
+          VERSION="${{ steps.version.outputs.version_number }}"
           if [ -f "release-assets/android/azuredevops.apk" ]; then
-            mv release-assets/android/azuredevops.apk "release-assets/android/azuredevops-$TAG_NAME.apk"
+            mv release-assets/android/azuredevops.apk "release-assets/android/azuredevops-$VERSION.apk"
           fi
           if [ -f "release-assets/android/app-release.aab" ]; then
-            mv release-assets/android/app-release.aab "release-assets/android/azuredevops-$TAG_NAME.aab"
+            mv release-assets/android/app-release.aab "release-assets/android/azuredevops-$VERSION.aab"
           fi
 
       - name: Rename iOS files
         run: |
-          TAG_NAME="${{ steps.tag.outputs.tag_name }}"
+          VERSION="${{ steps.version.outputs.version_number }}"
           if [ -f "release-assets/ios/azuredevops.ipa" ]; then
-            mv release-assets/ios/azuredevops.ipa "release-assets/ios/azuredevops-$TAG_NAME.ipa"
+            mv release-assets/ios/azuredevops.ipa "release-assets/ios/azuredevops-$VERSION.ipa"
           fi
 
       - name: Generate release notes

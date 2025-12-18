@@ -322,17 +322,17 @@ jobs:
           name: app-release-aab
           path: release-assets/
 
-      - name: Rename APK with tag
+      - name: Rename APK with version
         run: |
-          TAG_NAME="${{ steps.tag.outputs.tag_name }}"
-          mv release-assets/azuredevops.apk "release-assets/azuredevops-$TAG_NAME.apk"
-          echo "APK renamed to azuredevops-$TAG_NAME.apk"
+          VERSION="${{ steps.version.outputs.version_number }}"
+          mv release-assets/azuredevops.apk "release-assets/azuredevops-$VERSION.apk"
+          echo "APK renamed to azuredevops-$VERSION.apk"
 
-      - name: Rename AAB with tag
+      - name: Rename AAB with version
         run: |
-          TAG_NAME="${{ steps.tag.outputs.tag_name }}"
-          mv release-assets/app-release.aab "release-assets/azuredevops-$TAG_NAME.aab"
-          echo "AAB renamed to azuredevops-$TAG_NAME.aab"
+          VERSION="${{ steps.version.outputs.version_number }}"
+          mv release-assets/app-release.aab "release-assets/azuredevops-$VERSION.aab"
+          echo "AAB renamed to azuredevops-$VERSION.aab"
 
       - name: Generate SBOM
         run: |
@@ -424,8 +424,8 @@ jobs:
           name: Release ${{ steps.tag.outputs.tag_name }}
           body_path: release-notes.md
           files: |
-            release-assets/azuredevops-*.apk
-            release-assets/azuredevops-*.aab
+            release-assets/azuredevops-${{ steps.version.outputs.version_number }}.apk
+            release-assets/azuredevops-${{ steps.version.outputs.version_number }}.aab
             release-assets/RELEASE_NOTES.md
             release-assets/spdx.json
             release-assets/sbom.txt

@@ -259,8 +259,12 @@ jobs:
         id: version
         run: |
           VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' ')
+          VERSION_NUMBER=$(echo $VERSION | cut -d'+' -f1)
+          BUILD_NUMBER=$(echo $VERSION | cut -d'+' -f2)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Version: $VERSION"
+          echo "version_number=$VERSION_NUMBER" >> $GITHUB_OUTPUT
+          echo "build_number=$BUILD_NUMBER" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION (Number: $VERSION_NUMBER, Build: $BUILD_NUMBER)"
 
       - name: Download IPA artifact
         uses: actions/download-artifact@v4
@@ -268,11 +272,11 @@ jobs:
           name: app-release-ipa
           path: release-assets/
 
-      - name: Rename IPA with tag
+      - name: Rename IPA with version
         run: |
-          TAG_NAME="${{ steps.tag.outputs.tag_name }}"
-          mv release-assets/azuredevops.ipa "release-assets/azuredevops-$TAG_NAME.ipa"
-          echo "IPA renamed to azuredevops-$TAG_NAME.ipa"
+          VERSION="${{ steps.version.outputs.version_number }}"
+          mv release-assets/azuredevops.ipa "release-assets/azuredevops-$VERSION.ipa"
+          echo "IPA renamed to azuredevops-$VERSION.ipa"
 
       - name: Generate SBOM
         run: |
@@ -362,7 +366,7 @@ jobs:
           name: Release ${{ steps.tag.outputs.tag_name }} (iOS)
           body_path: release-notes.md
           files: |
-            release-assets/azuredevops-*.ipa
+            release-assets/azuredevops-${{ steps.version.outputs.version_number }}.ipa
             release-assets/RELEASE_NOTES.md
             release-assets/spdx.json
             release-assets/sbom.txt
