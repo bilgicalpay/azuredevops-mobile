@@ -153,10 +153,7 @@ jobs:
           name: android-coverage
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
-          # If token is not set, skip upload
-          skip: ${{ !secrets.CODECOV_TOKEN }}
-          token: ${{ secrets.CODECOV_TOKEN }}
-          # Skip if no token (tokenless upload requires public repo)
+          # Skip upload if token is not set (tokenless upload requires public repo)
           skip: ${{ !secrets.CODECOV_TOKEN }}
 
       - name: Upload coverage artifact
