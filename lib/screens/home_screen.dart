@@ -112,15 +112,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
-  void _startRealtimeService() {
+  void _startRealtimeService() async {
     final authService = Provider.of<AuthService>(context, listen: false);
     final storage = Provider.of<StorageService>(context, listen: false);
     
     print('🚀 [HomeScreen] Starting realtime service...');
-    print('🔍 [HomeScreen] Auth check - serverUrl: ${authService.serverUrl != null ? "✓" : "✗"}, token: ${authService.token != null ? "✓" : "✗"}');
+    final token = await authService.getAuthToken();
+    print('🔍 [HomeScreen] Auth check - serverUrl: ${authService.serverUrl != null ? "✓" : "✗"}, token: ${token != null ? "✓" : "✗"}');
     
     // Ensure we have auth before starting
-    if (authService.serverUrl == null || authService.token == null) {
+    if (authService.serverUrl == null || token == null) {
       print('❌ [HomeScreen] Cannot start realtime service: missing auth data');
       return;
     }
