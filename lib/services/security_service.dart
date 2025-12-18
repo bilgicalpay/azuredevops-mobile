@@ -28,63 +28,32 @@ class SecurityService {
   static Future<bool> isDeviceCompromised() async {
     try {
       final checker = FlutterRootJailbreakChecker();
-      bool isRooted = false;
-      bool isJailbroken = false;
       
-      // Check for root (Android)
-      if (Platform.isAndroid) {
-        try {
-          // Try different method names based on package version
-          try {
-            isRooted = await checker.isRooted();
-          } catch (e) {
-            // Try alternative method name
-            try {
-              isRooted = await checker.checkRoot();
-            } catch (e2) {
-              // If both fail, try checking result directly
-              final result = await checker.check();
-              isRooted = result.isRooted ?? false;
-            }
-          }
-        } catch (e) {
-          _logSecurityEvent('Root check error: $e', Level.WARNING);
-          isRooted = false;
-        }
-      }
+      // Use the check() method which returns a result object
+      // This is the standard API for flutter_root_jailbreak_checker 2.0+
+      final result = await checker.check();
       
-      // Check for jailbreak (iOS)
-      if (Platform.isIOS) {
-        try {
-          // Try different method names based on package version
-          try {
-            isJailbroken = await checker.isJailbroken();
-          } catch (e) {
-            // Try alternative method name
-            try {
-              isJailbroken = await checker.checkJailbreak();
-            } catch (e2) {
-              // If both fail, try checking result directly
-              final result = await checker.check();
-              isJailbroken = result.isJailbroken ?? false;
-            }
-          }
-        } catch (e) {
-          _logSecurityEvent('Jailbreak check error: $e', Level.WARNING);
-          isJailbroken = false;
-        }
-      }
-      
+      final isRooted = result.isRooted;
+      final isJailbroken = result.isJailbroken;
       final isCompromised = isRooted || isJailbroken;
       
       if (isCompromised) {
-        _logSecurityEvent('Device is compromised (rooted: $isRooted, jailbroken: $isJailbroken)', Level.SEVERE);
+        _logSecurityEvent(
+          'Device is compromised (rooted: $isRooted, jailbroken: $isJailbroken)',
+          Level.SEVERE
+        );
+      } else {
+        _logSecurityEvent(
+          'Device security check passed (rooted: $isRooted, jailbroken: $isJailbroken)',
+          Level.INFO
+        );
       }
       
       return isCompromised;
     } catch (e) {
       _logSecurityEvent('Error checking device security: $e', Level.SEVERE);
       // On error, assume device is not compromised to avoid blocking legitimate users
+      // Log the error for investigation
       return false;
     }
   }
