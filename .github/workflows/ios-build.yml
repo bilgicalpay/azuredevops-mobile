@@ -314,6 +314,7 @@ jobs:
         run: |
           TAG_NAME="${{ steps.tag.outputs.tag_name }}"
           VERSION="${{ steps.version.outputs.version }}"
+          VERSION_NUMBER="${{ steps.version.outputs.version_number }}"
           
           # Get changelog from commits since last tag
           LAST_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
@@ -324,8 +325,6 @@ jobs:
           fi
           
           COMMIT_COUNT=$(git rev-list --count ${LAST_TAG}..HEAD 2>/dev/null || git rev-list --count HEAD)
-          
-          VERSION_NUMBER=$(echo $VERSION | cut -d'+' -f1)
           
           NOTES="## 🚀 Azure DevOps OnPrem Mobile App (iOS) - $TAG_NAME
           
