@@ -410,6 +410,15 @@ jobs:
           See [commit history](https://github.com/${{ github.repository }}/compare/${LAST_TAG}...$TAG_NAME) for detailed changes."
           
           echo "$NOTES" > release-notes.md
+          
+      - name: Use RELEASE_NOTES.md if available
+        run: |
+          if [ -f "release-assets/RELEASE_NOTES.md" ]; then
+            echo "Using RELEASE_NOTES.md for release body"
+            cp release-assets/RELEASE_NOTES.md release-notes.md
+          else
+            echo "Using generated release notes"
+          fi
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
