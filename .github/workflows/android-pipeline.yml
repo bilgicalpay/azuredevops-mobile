@@ -370,21 +370,35 @@ jobs:
         continue-on-error: true
         run: |
           echo "📦 Installing cosign..."
-          wget -O /tmp/cosign https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64
-          chmod +x /tmp/cosign
-          sudo mv /tmp/cosign /usr/local/bin/cosign
-          cosign version || echo "⚠️  Cosign installation failed"
+          COSIGN_VERSION=$(curl -s https://api.github.com/repos/sigstore/cosign/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+          wget -O /tmp/cosign "https://github.com/sigstore/cosign/releases/download/${COSIGN_VERSION}/cosign-linux-amd64" || \
+          wget -O /tmp/cosign https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64 || \
+          echo "⚠️  Cosign download failed"
+          if [ -f /tmp/cosign ]; then
+            chmod +x /tmp/cosign
+            sudo mv /tmp/cosign /usr/local/bin/cosign || mv /tmp/cosign /usr/local/bin/cosign || echo "⚠️  Cosign install failed"
+            cosign version || echo "⚠️  Cosign version check failed"
+          fi
 
       - name: Sign APK with Sigstore
         if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
         continue-on-error: true
+        permissions:
+          id-token: write
+          contents: read
         run: |
           echo "🔐 Signing APK with Sigstore..."
           if command -v cosign &> /dev/null; then
             chmod +x scripts/sign_artifact.sh || true
-            # Use OIDC for authentication (non-interactive)
+            # Use OIDC for authentication in GitHub Actions
             export COSIGN_EXPERIMENTAL=1
-            ./scripts/sign_artifact.sh "build/app/outputs/flutter-apk/azuredevops-${{ steps.version.outputs.version_number }}.apk" || echo "⚠️  Sigstore signing skipped (authentication required)"
+            export COSIGN_OIDC_ISSUER=https://token.actions.githubusercontent.com
+            # Try OIDC first, fallback to manual if needed
+            cosign sign-blob \
+              --bundle "build/app/outputs/flutter-apk/azuredevops-${{ steps.version.outputs.version_number }}.apk.sigstore" \
+              --oidc-issuer https://token.actions.githubusercontent.com \
+              "build/app/outputs/flutter-apk/azuredevops-${{ steps.version.outputs.version_number }}.apk" || \
+            echo "⚠️  Sigstore signing skipped (OIDC authentication failed)"
           else
             echo "⚠️  cosign not installed. Sigstore signing will be skipped."
           fi
