@@ -149,6 +149,9 @@ jobs:
           flags: ios
           name: ios-coverage
           fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+          # If token is not set, skip upload
+          skip: ${{ !secrets.CODECOV_TOKEN }}
 
       - name: Upload coverage artifact
         if: always()

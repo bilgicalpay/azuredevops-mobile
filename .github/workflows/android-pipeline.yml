@@ -103,8 +103,9 @@ jobs:
 
       - name: Run Flutter test
         continue-on-error: true
+        timeout-minutes: 5
         run: |
-          flutter test --coverage || echo "⚠️  Tests failed, continuing..."
+          flutter test --coverage --timeout=30s || echo "⚠️  Tests failed, continuing..."
 
       - name: Upload test results
         if: always()
@@ -151,6 +152,12 @@ jobs:
           flags: android
           name: android-coverage
           fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+          # If token is not set, skip upload
+          skip: ${{ !secrets.CODECOV_TOKEN }}
+          token: ${{ secrets.CODECOV_TOKEN }}
+          # Skip if no token (tokenless upload requires public repo)
+          skip: ${{ !secrets.CODECOV_TOKEN }}
 
       - name: Upload coverage artifact
         if: always()

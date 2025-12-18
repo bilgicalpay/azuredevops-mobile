@@ -1,0 +1,34 @@
+// Fix for root_detector package namespace issue
+// This script adds namespace to root_detector package if missing
+
+afterEvaluate {
+    subprojects { project ->
+        if (project.name == "root_detector") {
+            if (!project.hasProperty("android")) {
+                return
+            }
+            def android = project.extensions.findByName("android")
+            if (android != null && android.namespace == null) {
+                // Try to get namespace from AndroidManifest.xml
+                def manifestFile = project.file("src/main/AndroidManifest.xml")
+                if (manifestFile.exists()) {
+                    def manifest = new XmlSlurper().parse(manifestFile)
+                    def packageName = manifest.@package?.text()
+                    if (packageName) {
+                        android.namespace = packageName
+                        println "✅ Added namespace '$packageName' to root_detector"
+                    } else {
+                        // Default namespace
+                        android.namespace = "space.wisnuwiry.root_detector"
+                        println "✅ Added default namespace to root_detector"
+                    }
+                } else {
+                    // Default namespace
+                    android.namespace = "space.wisnuwiry.root_detector"
+                    println "✅ Added default namespace to root_detector"
+                }
+            }
+        }
+    }
+}
+
