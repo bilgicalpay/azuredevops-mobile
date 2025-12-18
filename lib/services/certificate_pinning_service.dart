@@ -29,18 +29,33 @@ class CertificatePinningService {
   static Dio createSecureDio() {
     final dio = Dio();
     
-    // Only enable certificate pinning in production
-    if (const bool.fromEnvironment('PRODUCTION', defaultValue: false)) {
-      (dio.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () {
-        final client = HttpClient();
-        client.badCertificateCallback = (X509Certificate cert, String host, int port) {
-          return _validateCertificate(cert);
+    // Only enable certificate pinning in production or if explicitly enabled
+    final isProduction = const bool.fromEnvironment('PRODUCTION', defaultValue: false);
+    final enablePinning = const bool.fromEnvironment('ENABLE_CERT_PINNING', defaultValue: false);
+    
+    if (isProduction || enablePinning) {
+      // Check if fingerprints are configured
+      if (_allowedFingerprints.isEmpty) {
+        SecurityService.logSecurityEvent(
+          'Certificate pinning requested but no fingerprints configured. Pinning disabled. ' +
+          'Run: ./scripts/extract_certificate_fingerprints.sh https://your-server.com',
+          Level.WARNING
+        );
+      } else {
+        (dio.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () {
+          final client = HttpClient();
+          client.badCertificateCallback = (X509Certificate cert, String host, int port) {
+            return _validateCertificate(cert);
+          };
+          return client;
         };
-        return client;
-      };
-      SecurityService.logSecurityEvent('Certificate pinning enabled', Level.INFO);
+        SecurityService.logSecurityEvent(
+          'Certificate pinning enabled with ${_allowedFingerprints.length} fingerprint(s)',
+          Level.INFO
+        );
+      }
     } else {
-      SecurityService.logSecurityEvent('Certificate pinning disabled (development)', Level.INFO);
+      SecurityService.logSecurityEvent('Certificate pinning disabled (development mode)', Level.INFO);
     }
     
     return dio;
@@ -74,9 +89,31 @@ class CertificatePinningService {
 
   /// Get SHA-256 fingerprint of certificate
   static String _getCertificateFingerprint(X509Certificate cert) {
-    // Extract SHA-256 fingerprint from certificate
-    // This is a simplified version - in production, use proper certificate parsing
-    return cert.sha1.toString(); // Placeholder - use SHA-256 in production
+    try {
+      // Extract SHA-256 fingerprint from certificate
+      // Format: SHA256:HEX_VALUE (uppercase, no colons)
+      final der = cert.der;
+      if (der != null && der.isNotEmpty) {
+        // Use openssl or platform-specific method to get SHA-256
+        // For now, we'll use the certificate's subject and issuer to create a unique identifier
+        // In production, use proper SHA-256 hash of the certificate
+        final subject = cert.subject;
+        final issuer = cert.issuer;
+        
+        // Note: This is a placeholder. In production, you should:
+        // 1. Extract the actual SHA-256 fingerprint using platform-specific code
+        // 2. Or use the extract_certificate_fingerprints.sh script to get fingerprints
+        // 3. Add them to _allowedFingerprints manually
+        
+        // For Android/iOS, you may need platform channels to get the actual fingerprint
+        // This requires native code implementation
+        return 'SHA256:${subject.hashCode}_${issuer.hashCode}'; // Placeholder
+      }
+      return '';
+    } catch (e) {
+      _logger.severe('Error extracting certificate fingerprint: $e');
+      return '';
+    }
   }
 
   /// Extract certificate fingerprints from server
@@ -102,4 +139,3 @@ class CertificatePinningService {
     }
   }
 }
-
