@@ -211,9 +211,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     setState(() => _isLoadingWiki = true);
     
     try {
+      final token = await authService.getAuthToken();
+      if (token == null) {
+        setState(() => _isLoadingWiki = false);
+        return;
+      }
       final content = await _wikiService.fetchWikiContent(
         wikiUrl: wikiUrl,
-        token: authService.token!,
+        token: token,
         serverUrl: authService.serverUrl,
         collection: storage.getCollection(),
       );

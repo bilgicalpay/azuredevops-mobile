@@ -59,7 +59,8 @@ class RealtimeService {
     _shouldReconnect = true;
     
     // Check auth first
-    if (authService.serverUrl == null || authService.token == null) {
+    final token = await authService.getAuthToken();
+    if (authService.serverUrl == null || token == null) {
       print('❌ [RealtimeService] Cannot start: missing auth data');
       onError?.call('Missing authentication data');
       return;
@@ -104,12 +105,12 @@ class RealtimeService {
     StorageService storageService,
   ) async {
     try {
-      if (authService.serverUrl == null || authService.token == null) {
+      final token = await authService.getAuthToken();
+      if (authService.serverUrl == null || token == null) {
         return false;
       }
 
       final serverUrl = authService.serverUrl!;
-      final token = authService.token!;
       
       // Azure DevOps Server WebSocket endpoint (if available)
       // Note: This may need to be adjusted based on your server configuration
@@ -246,7 +247,8 @@ class RealtimeService {
     print('🔄 [RealtimeService] Starting optimized polling...');
     
     // Check auth before starting
-    if (authService.serverUrl == null || authService.token == null) {
+    final token = await authService.getAuthToken();
+    if (authService.serverUrl == null || token == null) {
       print('❌ [RealtimeService] Cannot start polling: missing auth data');
       onError?.call('Missing authentication data for polling');
       return;
@@ -302,14 +304,15 @@ class RealtimeService {
     StorageService storageService,
   ) async {
     try {
-      if (authService.serverUrl == null || authService.token == null) {
+      final token = await authService.getAuthToken();
+      if (authService.serverUrl == null || token == null) {
         print('⚠️ [RealtimeService] Cannot initialize: missing auth');
         return;
       }
 
       final workItems = await _workItemService.getWorkItems(
         serverUrl: authService.serverUrl!,
-        token: authService.token!,
+        token: token,
         collection: storageService.getCollection(),
       );
 
@@ -333,7 +336,8 @@ class RealtimeService {
     StorageService storageService,
   ) async {
     try {
-      if (authService.serverUrl == null || authService.token == null) {
+      final token = await authService.getAuthToken();
+      if (authService.serverUrl == null || token == null) {
         print('⚠️ [RealtimeService] Cannot check: missing auth');
         return false;
       }
@@ -342,7 +346,7 @@ class RealtimeService {
       // Use optimized query: only get IDs and changed date
       final workItems = await _workItemService.getWorkItems(
         serverUrl: authService.serverUrl!,
-        token: authService.token!,
+        token: token,
         collection: storageService.getCollection(),
       );
 

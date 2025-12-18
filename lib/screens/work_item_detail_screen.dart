@@ -82,11 +82,15 @@ class _WorkItemDetailScreenState extends State<WorkItemDetailScreen> {
     
     debugPrint('🔄 [UI] Fetching work item details from: $url');
     
+    final token = await authService.getAuthToken();
+    if (token == null) {
+      throw Exception('No authentication token available');
+    }
     final response = await _workItemService.dio.get(
       url,
       options: Options(
         headers: {
-          'Authorization': 'Basic ${_workItemService.encodeToken(authService.token!)}',
+          'Authorization': 'Basic ${_workItemService.encodeToken(token)}',
           'Content-Type': 'application/json',
         },
       ),
@@ -159,9 +163,16 @@ class _WorkItemDetailScreenState extends State<WorkItemDetailScreen> {
       }
 
       // Load available states
+      final token = await authService.getAuthToken();
+      if (token == null) {
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
       final states = await _workItemService.getWorkItemStates(
         serverUrl: authService.serverUrl!,
-        token: authService.token!,
+        token: token,
         workItemType: item.type,
         collection: storage.getCollection(),
         project: item.project,
@@ -174,7 +185,7 @@ class _WorkItemDetailScreenState extends State<WorkItemDetailScreen> {
       // Load field definitions to detect combo boxes
       final fieldDefs = await _workItemService.getWorkItemFieldDefinitions(
         serverUrl: authService.serverUrl!,
-        token: authService.token!,
+        token: token,
         workItemType: detailedItem.type,
         collection: storage.getCollection(),
         project: detailedItem.project,
@@ -236,7 +247,7 @@ class _WorkItemDetailScreenState extends State<WorkItemDetailScreen> {
 
       final relatedItemsGrouped = await _workItemService.getRelatedWorkItemsFromResponse(
         serverUrl: authService.serverUrl!,
-        token: authService.token!,
+        token: token,
         relations: relations,
         workItemId: widget.workItem.id,
         collection: storage.getCollection(),
@@ -287,7 +298,7 @@ class _WorkItemDetailScreenState extends State<WorkItemDetailScreen> {
 
       final relatedItemsGrouped = await _workItemService.getRelatedWorkItemsGrouped(
         serverUrl: authService.serverUrl!,
-        token: authService.token!,
+        token: token,
         workItemId: widget.workItem.id,
         collection: storage.getCollection(),
       );

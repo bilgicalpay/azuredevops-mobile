@@ -53,7 +53,7 @@ class _QueriesScreenState extends State<QueriesScreen> {
     try {
       final workItems = await _workItemService.getWorkItems(
         serverUrl: authService.serverUrl!,
-        token: authService.token!,
+        token: await authService.getAuthToken() ?? '',
         collection: storage.getCollection(),
       );
       if (workItems.isNotEmpty) {
@@ -100,7 +100,7 @@ class _QueriesScreenState extends State<QueriesScreen> {
       debugPrint('🔄 [UI] Fetching WIQL from URL: ${query.url}');
       wiql = await _workItemService.fetchQueryWiql(
         queryUrl: query.url!,
-        token: authService.token!,
+        token: await authService.getAuthToken() ?? '',
         serverUrl: authService.serverUrl!,
       );
       
