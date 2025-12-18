@@ -58,12 +58,12 @@ js
 1. **A01:2021 – Broken Access Control**
    - ✅ Token-based authentication implemented
    - ✅ Secure storage using FlutterSecureStorage
-   - ⚠️ Review API endpoint access controls
+   - ⚠️ Review API endpoint access controls (bizim uygulama bir api endpoit açmıyor. yani azure webhook kullanmadık. )
 
 2. **A02:2021 – Cryptographic Failures**
    - ✅ HTTPS enforced for all API calls
    - ✅ Secure token storage (EncryptedSharedPreferences/Keychain)
-   - ⚠️ Consider certificate pinning for production
+   - ⚠️ Consider certificate pinning for production (Bunu şirket içindeki azure sertifikası yüklenerek tekrar deploy edebiliriz. )
 
 3. **A03:2021 – Injection**
    - ✅ Parameterized API calls
@@ -86,14 +86,14 @@ js
 7. **A07:2021 – Authentication Failures**
    - ✅ PAT token authentication
    - ✅ AD authentication support
-   - ⚠️ Token expiration handling to be reviewed
+   - ⚠️ Token expiration handling to be reviewed (token expire max 6 ay ile kullanıcıya bırakılmış. Zaten azure bunu expire ediyor. ayrıca AD/LDAP da lock/disable olan kullanıcı yine login olamaz. Ayrıca Azure 'da yetkisi kaldırılan kişi yine login olamaz. uygulama dışında mdm, vpn ve azure server tarafında da 5 seviyeli bir koruma var zaten. o yüzden token expire azure tarafından yönetiliyor.)
 
 8. **A08:2021 – Software and Data Integrity Failures**
    - ⚠️ SBOM generated (see build/sbom/)
    - ⚠️ Consider code signing verification
 
 9. **A09:2021 – Security Logging Failures**
-   - ⚠️ Limited logging in production
+   - ⚠️ Limited logging in production (burada zaten azure ve ad kontrolleri var. )
    - ✅ Error tracking in place
 
 10. **A10:2021 – Server-Side Request Forgery**
