@@ -116,6 +116,20 @@ class StorageService extends ChangeNotifier {
     }
   }
   
+  // Token Expiry (for automatic refresh)
+  Future<int?> getTokenExpiry() async {
+    return _prefs?.getInt('token_expiry_timestamp');
+  }
+
+  Future<void> setTokenExpiry(int? timestamp) async {
+    if (timestamp == null) {
+      await _prefs?.remove('token_expiry_timestamp');
+    } else {
+      await _prefs?.setInt('token_expiry_timestamp', timestamp);
+    }
+    notifyListeners();
+  }
+
   Future<void> clear() async {
     // Güvenli depolamadan token'ı sil
     await _secureStorage.delete(key: 'auth_token');

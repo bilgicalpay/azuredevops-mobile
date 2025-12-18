@@ -53,7 +53,7 @@ class TokenRefreshService {
       final username = storage.getUsername();
       final currentToken = await storage.getToken();
 
-      if (serverUrl == null || collection == null || username == null || currentToken == null) {
+      if (serverUrl == null || currentToken == null) {
         SecurityService.logTokenOperation('Missing credentials for refresh', success: false);
         return false;
       }
