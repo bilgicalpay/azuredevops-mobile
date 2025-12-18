@@ -415,7 +415,7 @@ jobs:
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
     environment:
       name: production
-      url: https://play.google.com/store/apps/details?id=io.purplesoft.azuredevops_onprem
+      url: https://play.google.com/store/apps/details?id=io.rdc.azuredevops
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

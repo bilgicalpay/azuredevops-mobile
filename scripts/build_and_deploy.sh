@@ -40,7 +40,7 @@ if [ "$DEVICE_COUNT" -gt 0 ]; then
   echo "✅ APK installed successfully"
   
   echo "🚀 Launching app..."
-  /Users/alpaybilgic/Library/Android/sdk/platform-tools/adb shell am start -n io.purplesoft.azuredevops_onprem/io.purplesoft.azuredevops_onprem.MainActivity
+  /Users/alpaybilgic/Library/Android/sdk/platform-tools/adb shell am start -n io.rdc.azuredevops/io.rdc.azuredevops.MainActivity
   echo "✅ App launched"
 else
   echo "⚠️  No device connected. APK built but not deployed."

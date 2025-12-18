@@ -1,4 +1,4 @@
-package io.purplesoft.azuredevops_onprem
+package io.rdc.azuredevops
 
 import io.flutter.embedding.android.FlutterActivity
 

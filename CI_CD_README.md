@@ -133,7 +133,7 @@ Job parametreleri:
 ### Fastlane
 
 `fastlane/Appfile` dosyasında:
-- Package name: `io.purplesoft.azuredevops_onprem`
+- Package name: `io.rdc.azuredevops`
 - Google Play Store credentials (opsiyonel)
 
 ## 📦 Build Artifacts

@@ -77,13 +77,13 @@
 ### Uygulama Paket Bilgileri
 
 **Android:**
-- Package Name: `io.purplesoft.azuredevops_onprem`
-- Application ID: `io.purplesoft.azuredevops_onprem`
+- Package Name: `io.rdc.azuredevops`
+- Application ID: `io.rdc.azuredevops`
 - Minimum SDK: 21
 - Target SDK: 34
 
 **iOS:**
-- Bundle ID: `io.purplesoft.azuredevops_onprem`
+- Bundle ID: `io.rdc.azuredevops`
 - Minimum iOS: 12.0
 - Target iOS: 17.0
 

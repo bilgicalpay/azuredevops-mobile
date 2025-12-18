@@ -38,6 +38,7 @@ IPA dosyası şu konumda oluşturulur:
 ```
 build/ios/ipa/azuredevops_onprem.ipa
 ```
+(Not: IPA dosya adı Flutter tarafından otomatik oluşturulur, bundle identifier değişikliği dosya adını etkilemez)
 
 ## Fastlane ile Build
 
