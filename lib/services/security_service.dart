@@ -26,9 +26,13 @@ class SecurityService {
   /// Check if device is rooted (Android) or jailbroken (iOS)
   static Future<bool> isDeviceCompromised() async {
     try {
-      // Use static check() method (flutter_root_jailbreak_checker 2.0+)
-      // This is the recommended API according to package documentation
-      final result = await FlutterRootJailbreakChecker.check();
+      // Create instance and use checkOfflineIntegrity() for offline checks
+      // This is the recommended approach for flutter_root_jailbreak_checker 2.0+
+      final checker = FlutterRootJailbreakChecker();
+      
+      // Use checkOfflineIntegrity() which doesn't require config
+      // For full check with config, use: checker.check(IntegrityCheckConfig(...))
+      final result = await checker.checkOfflineIntegrity();
       
       final isRooted = result.isRooted;
       final isJailbroken = result.isJailbroken;
