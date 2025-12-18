@@ -1355,11 +1355,6 @@ class WorkItemService {
         debugPrint('   - url: ${relation['url']}');
         debugPrint('   - attributes: ${relation['attributes']}');
       }
-        
-        if (relations == null || relations.isEmpty) {
-          debugPrint('⚠️ Relations list is empty or null');
-          return {};
-        }
 
       // Group relations by type and extract IDs
       // According to Azure DevOps API docs:
