@@ -48,6 +48,11 @@ class SecurityService {
     // TODO: Integrate with security monitoring service
   }
 
+  /// Log security events (public)
+  static void logSecurityEvent(String message, [Level level = Level.INFO]) {
+    _logSecurityEvent(message, level);
+  }
+
   /// Log authentication events
   static void logAuthentication(String event, {Map<String, dynamic>? details}) {
     _logSecurityEvent('Auth: $event ${details ?? {}}', Level.INFO);

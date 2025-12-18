@@ -84,6 +84,8 @@ test:security:
     - echo "🔒 Running security scan..."
     - chmod +x scripts/security_scan.sh
     - ./scripts/security_scan.sh || true
+    - chmod +x scripts/security_checks.sh
+    - ./scripts/security_checks.sh || true
     - echo "📦 Checking for outdated packages..."
     - flutter pub outdated || true
   only:

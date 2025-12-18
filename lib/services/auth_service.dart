@@ -57,7 +57,7 @@ class AuthService extends ChangeNotifier {
   }) async {
     try {
       // Log authentication attempt
-      SecurityService.logAuthentication('Token login attempt', {'serverUrl': serverUrl});
+      SecurityService.logAuthentication('Token login attempt', details: {'serverUrl': serverUrl});
       
       // Bağlantıyı test et
       final dio = CertificatePinningService.createSecureDio();
@@ -96,18 +96,18 @@ class AuthService extends ChangeNotifier {
         _token = token;
         _authType = 'token';
         
-        SecurityService.logAuthentication('Token login successful', {'serverUrl': cleanUrl});
+        SecurityService.logAuthentication('Token login successful', details: {'serverUrl': cleanUrl});
         SecurityService.logTokenOperation('Token stored', success: true);
         
         notifyListeners();
         return true;
       }
       
-      SecurityService.logAuthentication('Token login failed', {'statusCode': response.statusCode});
+        SecurityService.logAuthentication('Token login failed', details: {'statusCode': response.statusCode});
       return false;
     } catch (e) {
       debugPrint('Token login error: $e');
-      SecurityService.logAuthentication('Token login error', {'error': e.toString()});
+      SecurityService.logAuthentication('Token login error', details: {'error': e.toString()});
       return false;
     }
   }
@@ -123,7 +123,7 @@ class AuthService extends ChangeNotifier {
   }) async {
     try {
       // Log authentication attempt
-      SecurityService.logAuthentication('AD login attempt', {'serverUrl': serverUrl, 'username': username});
+      SecurityService.logAuthentication('AD login attempt', details: {'serverUrl': serverUrl, 'username': username});
       
       final dio = CertificatePinningService.createSecureDio();
       final cleanUrl = serverUrl.endsWith('/') 
@@ -167,18 +167,18 @@ class AuthService extends ChangeNotifier {
         _username = username;
         _authType = 'ad';
         
-        SecurityService.logAuthentication('AD login successful', {'serverUrl': cleanUrl, 'username': username});
+        SecurityService.logAuthentication('AD login successful', details: {'serverUrl': cleanUrl, 'username': username});
         SecurityService.logTokenOperation('AD token stored', success: true);
         
         notifyListeners();
         return true;
       }
       
-      SecurityService.logAuthentication('AD login failed', {'statusCode': response.statusCode});
+      SecurityService.logAuthentication('AD login failed', details: {'statusCode': response.statusCode});
       return false;
     } catch (e) {
       debugPrint('AD login error: $e');
-      SecurityService.logAuthentication('AD login error', {'error': e.toString()});
+      SecurityService.logAuthentication('AD login error', details: {'error': e.toString()});
       return false;
     }
   }
