@@ -16,7 +16,7 @@
 7. [Güvenlik Denetimi ve Compliance](#güvenlik-denetimi-ve-compliance)
 8. [Güvenlik Açıkları ve Önlemler](#güvenlik-açıkları-ve-önlemler)
 9. [Güvenlik Denetimi](#güvenlik-denetimi)
-10. [İncilme Müdahale Planı](#incilme-müdahale-planı)
+10. [Problem Müdahale Planı](#problem-müdahale-planı)
 
 ---
 
@@ -593,7 +593,7 @@ cosign verify-blob \
 
 ---
 
-## İncilme Müdahale Planı
+## Problem Müdahale Planı
 
 ### Güvenlik İhlali Tespiti
 
