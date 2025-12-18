@@ -36,8 +36,8 @@ if [ -z "$CERT_INFO" ]; then
   exit 1
 fi
 
-# Extract SHA-256 fingerprint
-FINGERPRINT=$(echo "$CERT_INFO" | grep "SHA256 Fingerprint" | sed 's/.*=//' | tr -d ':' | tr '[:lower:]' '[:upper:]')
+# Extract SHA-256 fingerprint (keep colons for proper format)
+FINGERPRINT=$(echo "$CERT_INFO" | grep "SHA256 Fingerprint" | sed 's/.*=//' | tr '[:lower:]' '[:upper:]')
 
 if [ -z "$FINGERPRINT" ]; then
   echo "❌ Error: Could not extract fingerprint"
@@ -48,7 +48,7 @@ echo "✅ Certificate fingerprint extracted:"
 echo "   SHA-256: $FINGERPRINT"
 echo ""
 
-# Format for Dart code
+# Format for Dart code (keep colons in fingerprint)
 FORMATTED_FINGERPRINT="SHA256:$FINGERPRINT"
 
 echo "📝 Add this to certificate_pinning_service.dart:"

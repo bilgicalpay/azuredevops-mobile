@@ -1,104 +1,215 @@
 # Certificate Pinning Setup Guide
 
 ## Overview
-Certificate pinning ensures that your app only communicates with servers that have specific SSL certificates, preventing Man-in-the-Middle (MITM) attacks.
+
+Certificate pinning is a security feature that ensures your app only communicates with servers that have specific SSL/TLS certificates. This prevents man-in-the-middle (MITM) attacks by rejecting connections to servers with different certificates, even if they are valid.
+
+## Prerequisites
+
+- OpenSSL installed on your system
+- Access to your Azure DevOps Server URL
+- Production build environment configured
 
 ## Step 1: Extract Certificate Fingerprints
 
-### Using the Extraction Script
-
-1. Run the extraction script with your Azure DevOps Server URL:
-   ```bash
-   chmod +x scripts/extract_certificate_fingerprints.sh
-   ./scripts/extract_certificate_fingerprints.sh https://your-devops-server.com
-   ```
-
-2. The script will output:
-   - The SHA-256 fingerprint
-   - Code snippet to add to `certificate_pinning_service.dart`
-   - Save the fingerprint to `security/certificate_fingerprints.txt`
-
-### Manual Extraction
-
-If you have the certificate file:
+Use the provided script to extract SHA-256 fingerprints from your Azure DevOps Server:
 
 ```bash
-openssl x509 -in certificate.crt -fingerprint -sha256 -noout
+./scripts/extract_certificate_fingerprints.sh https://your-azure-devops-server.com
 ```
 
-Or from a server:
-
+**Example:**
 ```bash
-echo | openssl s_client -connect your-server.com:443 -servername your-server.com 2>/dev/null | openssl x509 -fingerprint -sha256 -noout
+./scripts/extract_certificate_fingerprints.sh https://devops.company.com
 ```
 
-## Step 2: Configure Certificate Pinning
+The script will output:
+```
+✅ Extracted SHA-256 Fingerprints:
+SHA256:AB-CD-EF-12-34-56-78-90-AB-CD-EF-12-34-56-78-90-AB-CD-EF-12-34-56-78-90-AB-CD-EF-12-34-56-78-90-AB-CD-EF
+```
+
+## Step 2: Add Fingerprints to Code
 
 1. Open `lib/services/certificate_pinning_service.dart`
-
-2. Add your certificate fingerprints to `_allowedFingerprints`:
+2. Find the `_allowedFingerprints` list
+3. Add your fingerprint(s) to the list:
 
 ```dart
 static const List<String> _allowedFingerprints = [
-  'SHA256:YOUR_FINGERPRINT_HERE',  // Your Azure DevOps Server
-  // Add additional fingerprints for load balancers, CDNs, etc.
+  'SHA256:AB-CD-EF-12-34-56-78-90-AB-CD-EF-12-34-56-78-90-AB-CD-EF-12-34-56-78-90-AB-CD-EF-12-34-56-78-90-AB-CD-EF',  // Your Azure DevOps Server
+  // Add additional fingerprints for load balancers or CDNs if applicable
 ];
 ```
 
-3. Enable certificate pinning for production builds:
+**Important Notes:**
+- The fingerprint format must be: `SHA256:HEX-VALUE` (with colons)
+- If you have multiple certificates (e.g., load balancer + server), add all of them
+- The script automatically formats the fingerprint correctly
 
-The service automatically enables pinning when `PRODUCTION` environment variable is set:
+## Step 3: Enable Certificate Pinning
 
+Certificate pinning is automatically enabled in production builds. The build process sets `PRODUCTION=true`:
+
+### Android Build:
 ```bash
 flutter build apk --release --dart-define=PRODUCTION=true
-flutter build ios --release --dart-define=PRODUCTION=true
+flutter build appbundle --release --dart-define=PRODUCTION=true
 ```
 
-Or in your CI/CD pipeline, add:
-
-```yaml
-- name: Build with certificate pinning
-  run: flutter build apk --release --dart-define=PRODUCTION=true
+### iOS Build:
+```bash
+flutter build ipa --release --dart-define=PRODUCTION=true
 ```
 
-## Step 3: Test Certificate Pinning
+### Manual Testing (Development):
+If you want to test certificate pinning in development mode:
 
-1. **Development Mode (Pinning Disabled):**
-   - Certificate pinning is disabled by default
-   - App will work normally with any valid certificate
+```bash
+flutter run --dart-define=ENABLE_CERT_PINNING=true
+```
 
-2. **Production Mode (Pinning Enabled):**
-   - Only connections to servers with pinned certificates will succeed
-   - Connections to other servers will fail with certificate validation errors
+## Step 4: Verify Configuration
 
-## Step 4: Handle Certificate Updates
+After adding fingerprints, verify the configuration:
 
-When your server's certificate is renewed:
+1. **Check the service file:**
+   ```bash
+   grep -A 5 "_allowedFingerprints" lib/services/certificate_pinning_service.dart
+   ```
 
-1. Extract the new fingerprint using the script
-2. Update `_allowedFingerprints` in `certificate_pinning_service.dart`
-3. Update the app version and release
+2. **Run security checks:**
+   ```bash
+   ./scripts/security_checks.sh
+   ```
 
-## Important Notes
+3. **Check the report:**
+   ```bash
+   cat security/security_implementation_report.md
+   ```
 
-- **Certificate Expiry:** Keep track of certificate expiry dates
-- **Multiple Certificates:** If you use load balancers or CDNs, add all certificate fingerprints
-- **Backup Plan:** Always have a way to update the app if certificates change unexpectedly
-- **Testing:** Test certificate pinning in a staging environment before production
+## Step 5: Test Certificate Pinning
+
+### Test in Development Mode:
+```bash
+# Without pinning (should work normally)
+flutter run
+
+# With pinning enabled (should work if fingerprints match)
+flutter run --dart-define=ENABLE_CERT_PINNING=true
+```
+
+### Test Production Build:
+```bash
+# Build with production flag
+flutter build apk --release --dart-define=PRODUCTION=true
+
+# Install and test
+adb install build/app/outputs/flutter-apk/app-release.apk
+```
 
 ## Troubleshooting
 
-### Connection Fails After Enabling Pinning
+### Issue: "Certificate validation failed"
+**Cause:** The server's certificate doesn't match any fingerprint in the list.
 
-1. Verify the fingerprint is correct
-2. Check if the server uses multiple certificates (load balancer)
-3. Ensure the fingerprint format is correct: `SHA256:HEX_VALUE`
+**Solutions:**
+1. Re-extract fingerprints: `./scripts/extract_certificate_fingerprints.sh https://your-server.com`
+2. Check if the certificate was renewed/changed
+3. Verify you're connecting to the correct server
+4. Check for load balancer certificates (add all certificates in the chain)
 
-### Certificate Changed
+### Issue: "Certificate pinning requested but no fingerprints configured"
+**Cause:** Production build is enabled but no fingerprints are in the list.
 
-If your server certificate changes and the app is already deployed:
+**Solution:**
+1. Add at least one fingerprint to `_allowedFingerprints`
+2. Or disable pinning by removing `PRODUCTION=true` from build command
 
-1. Extract the new fingerprint
-2. Update the app with the new fingerprint
-3. Release a new version immediately
+### Issue: Connection fails in production build
+**Cause:** Certificate pinning is blocking the connection.
 
+**Solutions:**
+1. Verify fingerprints are correct
+2. Check if certificate chain includes intermediate certificates
+3. Temporarily disable pinning to test: Remove `PRODUCTION=true` from build
+
+## Certificate Updates
+
+When your server's certificate is renewed or changed:
+
+1. **Extract new fingerprints:**
+   ```bash
+   ./scripts/extract_certificate_fingerprints.sh https://your-server.com
+   ```
+
+2. **Update the code:**
+   - Replace old fingerprints in `_allowedFingerprints`
+   - Or add new fingerprints alongside old ones (during transition period)
+
+3. **Test:**
+   - Build and test the app
+   - Verify connections work correctly
+
+4. **Deploy:**
+   - Create a new release with updated fingerprints
+   - Notify users to update if necessary
+
+## Best Practices
+
+1. **Multiple Fingerprints:**
+   - Add fingerprints for all certificates in the chain (server, load balancer, CDN)
+   - Keep old fingerprints during certificate transitions
+
+2. **Regular Updates:**
+   - Check certificate expiry dates
+   - Update fingerprints before certificates expire
+
+3. **Monitoring:**
+   - Monitor security logs for certificate validation failures
+   - Set up alerts for repeated failures
+
+4. **Testing:**
+   - Test certificate pinning in staging environment first
+   - Verify both valid and invalid certificate scenarios
+
+## CI/CD Integration
+
+Certificate pinning is automatically enabled in all CI/CD pipelines:
+
+- **GitHub Actions:** `PRODUCTION=true` is set in build commands
+- **GitLab CI:** `PRODUCTION=true` is set in build commands
+- **Jenkins:** `PRODUCTION=true` is set in build commands
+
+No additional configuration needed in pipelines.
+
+## Security Considerations
+
+1. **Fingerprint Storage:**
+   - Fingerprints are stored in source code (public repository)
+   - This is acceptable as fingerprints are public information
+   - They don't reveal private keys or sensitive data
+
+2. **Certificate Renewal:**
+   - Plan certificate renewals in advance
+   - Update fingerprints before expiry
+   - Test thoroughly before production deployment
+
+3. **Fallback Strategy:**
+   - Consider implementing a fallback mechanism for certificate updates
+   - Monitor for certificate validation failures
+   - Have a rollback plan if pinning causes issues
+
+## Additional Resources
+
+- [OWASP Certificate Pinning Guide](https://owasp.org/www-community/controls/Certificate_and_Public_Key_Pinning)
+- [Flutter SSL Pinning](https://flutter.dev/docs/development/data-and-backend/networking)
+- [OpenSSL Documentation](https://www.openssl.org/docs/)
+
+## Support
+
+If you encounter issues:
+1. Check the security implementation report: `security/security_implementation_report.md`
+2. Review logs for certificate validation errors
+3. Verify OpenSSL and script execution
+4. Test with `ENABLE_CERT_PINNING=true` flag in development mode
