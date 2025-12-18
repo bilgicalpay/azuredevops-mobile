@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter_root_jailbreak_checker/flutter_root_jailbreak_checker.dart';
 import 'package:logging/logging.dart';
 
@@ -29,9 +28,9 @@ class SecurityService {
     try {
       final checker = FlutterRootJailbreakChecker();
       
-      // Use the check() method which returns a result object
+      // Use the check() method with empty options
       // This is the standard API for flutter_root_jailbreak_checker 2.0+
-      final result = await checker.check();
+      final result = await checker.check(RootJailbreakCheckOptions());
       
       final isRooted = result.isRooted;
       final isJailbroken = result.isJailbroken;
