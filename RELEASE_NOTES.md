@@ -28,12 +28,47 @@
 - ✅ **Comprehensive Security Audit:** Combined security analysis
 
 ### Security Features
+
+#### 1. Certificate Pinning ✅
+- **Status:** Production Ready (Fingerprint configuration required)
+- **Service:** `lib/services/certificate_pinning_service.dart`
+- **Activation:** Automatically enabled in production builds (`PRODUCTION=true`)
+- **Setup Guide:** `scripts/setup_certificate_pinning.md`
+- **Extraction Script:** `scripts/extract_certificate_fingerprints.sh`
+- **Important:** Certificate fingerprints must be added before production deployment
+
+#### 2. Root/Jailbreak Detection ✅
+- **Status:** Implemented
+- **Service:** `lib/services/security_service.dart`
+- **Package:** `flutter_root_jailbreak_checker: ^2.0.1`
+- **Method:** `checkOfflineIntegrity()` (API v2.0+)
+- **Behavior:** Checks device security at app startup, logs events (non-blocking)
+
+#### 3. Automatic Token Refresh ✅
+- **Status:** Implemented (Conceptual for PATs)
+- **Service:** `lib/services/token_refresh_service.dart`
+- **Current:** Token expiry checking and tracking
+- **Limitation:** Azure DevOps PATs don't support refresh tokens (manual token generation required)
+
+#### 4. Security Logging ✅
+- **Status:** Implemented
+- **Service:** `lib/services/security_service.dart`
+- **Package:** `logging: ^1.3.0`
+- **Events:** Authentication, token operations, API calls, sensitive data access
+- **Integration:** All security events logged through centralized service
+
+### Additional Security Features
 - ✅ Secure token storage using FlutterSecureStorage
 - ✅ Android: EncryptedSharedPreferences
 - ✅ iOS: Keychain
 - ✅ HTTPS enforced for all API calls
 - ✅ Background service security improvements
 - ✅ Android 15 compatibility
+
+### Documentation
+- **Security Features Guide:** `docs/SECURITY_FEATURES.md`
+- **Certificate Pinning Setup:** `scripts/setup_certificate_pinning.md`
+- **Security Implementation Report:** `security/security_implementation_report.md`
 
 ## ✨ Features
 

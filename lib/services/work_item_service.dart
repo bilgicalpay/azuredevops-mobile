@@ -800,7 +800,7 @@ class WorkItemService {
 
       return [];
     } catch (e) {
-      print('Get work items error: $e');
+      debugPrint('Get work items error: $e');
       return [];
     }
   }
@@ -1018,9 +1018,7 @@ class WorkItemService {
         if (attributes != null && attributes.containsKey('changedDate')) {
           changedDate = DateTime.tryParse(attributes['changedDate'] as String);
         }
-        if (changedDate == null) {
-          changedDate = item.changedDate;
-        }
+        changedDate ??= item.changedDate;
         
         final relatedItem = RelatedWorkItem(
           workItem: item,
@@ -1161,9 +1159,7 @@ class WorkItemService {
         if (attributes != null && attributes.containsKey('changedDate')) {
           changedDate = DateTime.tryParse(attributes['changedDate'] as String);
         }
-        if (changedDate == null) {
-          changedDate = item.changedDate;
-        }
+        changedDate ??= item.changedDate;
         
         final relatedItem = RelatedWorkItem(
           workItem: item,
@@ -1512,9 +1508,7 @@ class WorkItemService {
         if (attributes != null && attributes.containsKey('changedDate')) {
           changedDate = DateTime.tryParse(attributes['changedDate'] as String);
         }
-        if (changedDate == null) {
-          changedDate = item.changedDate;
-        }
+        changedDate ??= item.changedDate;
         
         final relatedItem = RelatedWorkItem(
           workItem: item,
@@ -1578,7 +1572,7 @@ class WorkItemService {
 
       return response.statusCode == 200;
     } catch (e) {
-      print('Update work item error: $e');
+      debugPrint('Update work item error: $e');
       return false;
     }
   }
@@ -1631,19 +1625,19 @@ class WorkItemService {
                 .map((state) => state['name'] as String)
                 .toList();
             if (states.isNotEmpty) {
-              print('States loaded from: $url');
+              debugPrint('States loaded from: $url');
               return states;
             }
           }
         } catch (e) {
-          print('Failed to get states from $url: $e');
+          debugPrint('Failed to get states from $url: $e');
           continue;
         }
       }
 
       return [];
     } catch (e) {
-      print('Get work item states error: $e');
+      debugPrint('Get work item states error: $e');
       return [];
     }
   }
@@ -1714,19 +1708,19 @@ class WorkItemService {
             }
             
             if (fields.isNotEmpty) {
-              print('Field definitions loaded from: $url (${fields.length} fields)');
+              debugPrint('Field definitions loaded from: $url (${fields.length} fields)');
               return fields;
             }
           }
         } catch (e) {
-          print('Failed to get field definitions from $url: $e');
+          debugPrint('Failed to get field definitions from $url: $e');
           continue;
         }
       }
 
       return {};
     } catch (e) {
-      print('Get field definitions error: $e');
+      debugPrint('Get field definitions error: $e');
       return {};
     }
   }
