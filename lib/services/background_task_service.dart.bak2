@@ -351,14 +351,7 @@ class BackgroundTaskService {
 
       for (var folderPath in favoriteFolders) {
         try {
-          // FIXED Bug #2: Normalize marketUrl before concatenation
-          // Prevents malformed URLs like "https://example.com/_static/marketandroid/"
-          // when marketUrl doesn't have trailing slash
-          String normalizedMarketUrl = marketUrl;
-          if (!normalizedMarketUrl.endsWith('/')) {
-            normalizedMarketUrl += '/';
-          }
-          final folderUrl = '$normalizedMarketUrl$folderPath';
+          final folderUrl = '$marketUrl$folderPath';
           
           // Get folder name from path (e.g., "android/bankacilik-uygulamasi/" -> "bankacilik-uygulamasi")
           final folderName = folderPath.split('/').where((p) => p.isNotEmpty).lastOrNull ?? folderPath;
