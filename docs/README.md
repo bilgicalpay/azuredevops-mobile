@@ -18,6 +18,7 @@ Bu uygulama, Azure DevOps Server 2022 on-premise kurulumları için mobil erişi
 - ✅ Active Directory (AD) kimlik doğrulama
 - ✅ MDM entegrasyonu
 - ✅ Offline çalışma desteği (sınırlı)
+- ✅ Market özelliği (IIS static dizininden APK/IPA indirme)
 
 ## Dokümantasyon
 
@@ -108,6 +109,12 @@ Bu uygulama, Azure DevOps Server 2022 on-premise kurulumları için mobil erişi
    - Son aktivite takibi
    - Uygulama açıldığında kontrol edilir
 
+5. ✅ **Market Özelliği:** IIS static dizininden uygulama dosyaları indirme
+   - IIS directory listing desteği (HTML ve JSON)
+   - APK, IPA, AAB dosyaları için otomatik filtreleme
+   - Dosya boyutu gösterimi
+   - Pull-to-refresh desteği
+
 Detaylar için [SECURITY.md](SECURITY.md) dosyasına bakın.
 
 ## Dağıtım
@@ -121,6 +128,32 @@ Detaylar için [SECURITY.md](SECURITY.md) dosyasına bakın.
 5. Uygulamayı dağıtın
 
 Detaylar için [MDM_INTEGRATION.md](MDM_INTEGRATION.md) dosyasına bakın.
+
+### Market Özelliği ile Dağıtım
+
+Market özelliği, kullanıcıların uygulama güncellemelerini doğrudan cihazlarına indirmelerini sağlar.
+
+**IIS Yapılandırması:**
+
+1. IIS'te static dosya servisini aktif edin
+2. Directory browsing'i aktif edin
+3. APK/IPA dosyalarını `/_static/market/` dizinine yerleştirin
+4. HTTPS erişimini sağlayın
+
+**Uygulama İçi Yapılandırma:**
+
+1. Ayarlar → Market Ayarları
+2. Market URL'sini girin (örn: `https://devops.higgscloud.com/_static/market/`)
+3. Kaydet
+
+**Kullanım:**
+
+1. Ana ekranda Market ikonuna tıklayın
+2. Listelenen APK/IPA dosyalarından birini seçin
+3. İndir butonuna tıklayın
+4. İndirme tarayıcı/indirme yöneticisi üzerinden devam eder
+
+**Not:** Market özelliği, IIS static dizininden dosyaları listeler ve indirir. Git repository veya Azure DevOps Releases API kullanmaz.
 
 ## Destek
 

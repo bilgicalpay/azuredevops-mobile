@@ -98,7 +98,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     
     await storage.setWikiUrl(wikiUrl.isEmpty ? null : wikiUrl);
     
-    // Save market repository URL
+    // Save market URL
     final marketRepoUrl = _marketRepoUrlController.text.trim();
     if (marketRepoUrl.isNotEmpty) {
       // Validate URL
@@ -107,7 +107,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Geçerli bir Market Repository URL girin'),
+            content: Text('Geçerli bir Market URL girin (örn: https://devops.higgscloud.com/_static/market/)'),
             backgroundColor: Colors.red,
           ),
         );
@@ -202,15 +202,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      'Azure DevOps Git repository URL\'sini girin. Bu repository\'den release\'ler ve artifact\'lar (APK/IPA) çekilecektir.',
+                      'IIS static dizin URL\'sini girin. Bu dizinden APK ve IPA dosyaları listelenecek ve indirilebilecektir.',
                       style: TextStyle(fontSize: 14, color: Colors.grey),
                     ),
                     const SizedBox(height: 16),
                     TextField(
                       controller: _marketRepoUrlController,
                       decoration: const InputDecoration(
-                        labelText: 'Market Repository URL',
-                        hintText: 'https://devops.higgscloud.com/Dev/demo/_git/azuredevops-server-mobile',
+                        labelText: 'Market URL',
+                        hintText: 'https://devops.higgscloud.com/_static/market/',
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.store),
                       ),
