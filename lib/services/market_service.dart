@@ -186,6 +186,13 @@ class MarketService {
     final document = html_parser.parse(html);
     final links = document.querySelectorAll('a');
     
+    // Parse baseUrl to get its path
+    final baseUri = Uri.parse(baseUrl);
+    final basePath = baseUri.path.endsWith('/') 
+        ? baseUri.path.substring(0, baseUri.path.length - 1)
+        : baseUri.path;
+    final basePathSegments = basePath.split('/').where((s) => s.isNotEmpty).toList();
+    
     for (var link in links) {
       final href = link.attributes['href'];
       if (href == null || href.isEmpty) continue;
@@ -213,77 +220,60 @@ class MarketService {
           _logger.warning('Failed to decode href: $cleanHref');
         }
         
-        // Extract folder name - always use the last segment
-        final pathSegments = cleanHref.split('/').where((s) => s.isNotEmpty).toList();
-        if (pathSegments.isEmpty) continue;
-        
-        final folderName = pathSegments.last; // Always use last segment as folder name
-        
-        if (folderName.isEmpty) continue;
-        
-        // Normalize href for path storage
-        String normalizedHref = href;
-        
-        // If href is absolute (starts with /), extract relative part
-        if (normalizedHref.startsWith('/')) {
-          final baseUri = Uri.parse(baseUrl);
-          final basePath = baseUri.path;
+        // Parse href to get its path segments
+        String hrefPath = cleanHref;
+        if (hrefPath.startsWith('/')) {
+          // Absolute path - extract relative part by comparing with basePath
+          final hrefPathSegments = hrefPath.split('/').where((s) => s.isNotEmpty).toList();
           
-          // Normalize paths for comparison
-          final cleanBasePath = basePath.endsWith('/') 
-              ? basePath.substring(0, basePath.length - 1) 
-              : basePath;
-          final cleanHrefPath = normalizedHref.endsWith('/')
-              ? normalizedHref.substring(0, normalizedHref.length - 1)
-              : normalizedHref;
-          
-          // Remove leading slash from href
-          final hrefWithoutSlash = cleanHrefPath.startsWith('/') 
-              ? cleanHrefPath.substring(1) 
-              : cleanHrefPath;
-          final baseWithoutSlash = cleanBasePath.startsWith('/')
-              ? cleanBasePath.substring(1)
-              : cleanBasePath;
-          
-          // Extract relative path
-          if (hrefWithoutSlash.startsWith(baseWithoutSlash)) {
-            // href contains basePath, extract relative part
-            normalizedHref = hrefWithoutSlash.substring(baseWithoutSlash.length);
-            if (normalizedHref.startsWith('/')) {
-              normalizedHref = normalizedHref.substring(1);
-            }
-          } else {
-            // href doesn't start with basePath - extract segments
-            final hrefSegments = hrefWithoutSlash.split('/').where((s) => s.isNotEmpty).toList();
-            final baseSegments = baseWithoutSlash.split('/').where((s) => s.isNotEmpty).toList();
-            
-            // Find matching prefix
-            int matchCount = 0;
-            for (int i = 0; i < baseSegments.length && i < hrefSegments.length; i++) {
-              if (baseSegments[i] == hrefSegments[i]) {
-                matchCount++;
-              } else {
-                break;
-              }
-            }
-            
-            // Extract relative part (everything after matching segments)
-            if (matchCount < hrefSegments.length) {
-              normalizedHref = hrefSegments.sublist(matchCount).join('/');
+          // Find how many segments match with basePath
+          int matchCount = 0;
+          for (int i = 0; i < basePathSegments.length && i < hrefPathSegments.length; i++) {
+            if (basePathSegments[i] == hrefPathSegments[i]) {
+              matchCount++;
             } else {
-              // No match or exact match - use last segment
-              normalizedHref = folderName;
+              break;
             }
+          }
+          
+          // Extract relative part (everything after matching segments)
+          if (matchCount < hrefPathSegments.length) {
+            hrefPath = hrefPathSegments.sublist(matchCount).join('/');
+          } else {
+            // No match or exact match - use last segment only
+            hrefPath = hrefPathSegments.isNotEmpty ? hrefPathSegments.last : '';
+          }
+        } else {
+          // Relative path - use as is (but remove any leading ./)
+          if (hrefPath.startsWith('./')) {
+            hrefPath = hrefPath.substring(2);
           }
         }
         
-        // Ensure normalizedHref ends with /
-        if (!normalizedHref.endsWith('/')) {
-          normalizedHref += '/';
+        // Extract folder name - always use the last segment, and remove _static prefix if present
+        final pathSegments = hrefPath.split('/').where((s) => s.isNotEmpty).toList();
+        if (pathSegments.isEmpty) continue;
+        
+        String folderName = pathSegments.last;
+        
+        // Remove _static prefix from folder name if present
+        if (folderName.startsWith('_static')) {
+          folderName = folderName.substring('_static'.length);
+          if (folderName.isEmpty && pathSegments.length > 1) {
+            folderName = pathSegments[pathSegments.length - 2];
+          }
         }
         
-        // Build full path
-        final fullPath = '$baseUrl$normalizedHref';
+        if (folderName.isEmpty) continue;
+        
+        // Normalized path is just the folder name with trailing slash
+        // This ensures we always store relative paths like "ABC/" not "_static/market/ABC/"
+        final normalizedHref = '$folderName/';
+        
+        // Build full path by appending to baseUrl
+        final fullPath = baseUrl.endsWith('/') 
+            ? '$baseUrl$normalizedHref'
+            : '$baseUrl/$normalizedHref';
         
         // Check if folder already exists
         if (!folders.any((f) => f.path == normalizedHref)) {
