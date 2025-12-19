@@ -18,6 +18,7 @@ Bu uygulama, Azure DevOps Server 2022 on-premise kurulumları için mobil erişi
 - ✅ Active Directory (AD) kimlik doğrulama
 - ✅ MDM entegrasyonu
 - ✅ Offline çalışma desteği (sınırlı)
+- ✅ Market özelliği (IIS static dizininden APK/IPA indirme)
 
 ## Dokümantasyon
 
@@ -108,6 +109,12 @@ Bu uygulama, Azure DevOps Server 2022 on-premise kurulumları için mobil erişi
    - Son aktivite takibi
    - Uygulama açıldığında kontrol edilir
 
+5. ✅ **Market Özelliği:** IIS static dizininden uygulama dosyaları indirme
+   - IIS directory listing desteği (HTML ve JSON)
+   - APK, IPA, AAB dosyaları için otomatik filtreleme
+   - Dosya boyutu gösterimi
+   - Pull-to-refresh desteği
+
 Detaylar için [SECURITY.md](SECURITY.md) dosyasına bakın.
 
 ## Dağıtım
@@ -121,6 +128,87 @@ Detaylar için [SECURITY.md](SECURITY.md) dosyasına bakın.
 5. Uygulamayı dağıtın
 
 Detaylar için [MDM_INTEGRATION.md](MDM_INTEGRATION.md) dosyasına bakın.
+
+### Market Özelliği ile Dağıtım
+
+Market özelliği, kullanıcıların uygulama güncellemelerini doğrudan cihazlarına indirmelerini sağlar.
+
+#### IIS Yapılandırması
+
+1. **IIS'te static dosya servisini aktif edin**
+   - IIS Manager → Sites → [Your Site] → Features View
+   - Static Content modülünü aktif edin
+
+2. **Directory browsing'i aktif edin**
+   - IIS Manager → Sites → [Your Site] → Features View
+   - Directory Browsing → Enable
+
+3. **Market dizin yapısını oluşturun**
+   ```
+   C:\inetpub\wwwroot\_static\market\
+   ├── ProductA\
+   │   ├── 1.0.0\
+   │   │   ├── ProductA-1.0.0.apk
+   │   │   └── ProductA-1.0.0.ipa
+   │   └── 1.0.1\
+   │       ├── ProductA-1.0.1.apk
+   │       └── ProductA-1.0.1.ipa
+   └── ProductB\
+       └── 2.0.0\
+           ├── ProductB-2.0.0.apk
+           └── ProductB-2.0.0.ipa
+   ```
+
+4. **web.config dosyası oluşturun**
+   
+   Ana market dizinine (`C:\inetpub\wwwroot\_static\market\`) `web.config` dosyası ekleyin:
+   
+   ```xml
+   <?xml version="1.0" encoding="UTF-8"?>
+   <configuration>
+       <system.webServer>
+           <staticContent>
+               <mimeMap fileExtension=".IPA" mimeType="application/octet-stream" />
+               <mimeMap fileExtension=".APK" mimeType="application/octet-stream" />
+           </staticContent>
+       </system.webServer>
+   </configuration>
+   ```
+   
+   **Not:** Bu dosya, APK ve IPA dosyalarının doğru MIME type ile sunulmasını sağlar. Aksi halde dosyalar indirilemez.
+
+5. **HTTPS erişimini sağlayın**
+   - SSL sertifikası yapılandırın
+   - HTTPS binding ekleyin
+
+#### Uygulama İçi Yapılandırma
+
+1. **Ayarlar** sayfasına gidin
+2. **Market URL** alanına IIS static dizin URL'sini girin
+   - Format: `https://your-server.com/_static/market/`
+   - Örnek: `https://devops.higgscloud.com/_static/market/`
+3. **Kaydet** butonuna tıklayın
+
+#### Kullanım
+
+1. Ana ekranda **Market** ikonuna tıklayın
+2. Klasör yapısı görüntülenir (Product → Version → Files)
+3. İstediğiniz dosyaya tıklayın
+4. Dosya otomatik olarak indirilir:
+   - **Android:** Downloads klasörüne kaydedilir
+   - **iOS:** Files app'te görünür (Documents dizini)
+
+#### Dosya İndirme
+
+- **Android:** Dosyalar Downloads klasörüne kaydedilir. Android 10+ için özel izin gerekmez (scoped storage).
+- **iOS:** Dosyalar Documents dizinine kaydedilir ve Files app'te görünür.
+
+#### Notlar
+
+- Market özelliği, IIS static dizininden dosyaları listeler ve indirir
+- Git repository veya Azure DevOps Releases API kullanmaz
+- Directory listing (HTML veya JSON) formatını destekler
+- APK, IPA ve AAB dosyaları otomatik olarak filtrelenir
 
 ## Destek
 

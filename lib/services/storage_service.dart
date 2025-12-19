@@ -5,7 +5,9 @@
 /// Server URL, kullanıcı adı, collection ve wiki URL bilgileri SharedPreferences'da saklanır.
 /// 
 /// @author Alpay Bilgiç
+library;
 
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -19,9 +21,12 @@ class StorageService extends ChangeNotifier {
       encryptedSharedPreferences: true, // Android EncryptedSharedPreferences kullan
       sharedPreferencesName: 'FlutterSecureStorage',
       preferencesKeyPrefix: 'flutter_secure_storage_',
+      // Android Auto Backup ile otomatik olarak yedeklenir
+      // EncryptedSharedPreferences Android 6.0+ Auto Backup ile korunur
     ),
     iOptions: IOSOptions(
       accessibility: KeychainAccessibility.first_unlock_this_device, // iOS Keychain kullan
+      // iOS Keychain otomatik olarak iCloud Backup ile yedeklenir (ayarlar açıksa)
     ),
   );
   
@@ -111,7 +116,7 @@ class StorageService extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Market Repository URL (Azure DevOps Git repository)
+  // Market Repository URL (IIS static directory)
   String? getMarketRepoUrl() => _prefs?.getString('market_repo_url');
   Future<void> setMarketRepoUrl(String? repoUrl) async {
     if (repoUrl == null || repoUrl.isEmpty) {
@@ -120,6 +125,82 @@ class StorageService extends ChangeNotifier {
       await _prefs?.setString('market_repo_url', repoUrl);
     }
     notifyListeners();
+  }
+
+  // Favorite Market Folders
+  /// Get list of favorite folder paths
+  Future<List<String>> getFavoriteFolders() async {
+    try {
+      final favoritesJson = _prefs?.getString('market_favorite_folders');
+      if (favoritesJson == null || favoritesJson.isEmpty) {
+        return [];
+      }
+      final List<dynamic> favorites = jsonDecode(favoritesJson);
+      return favorites.cast<String>();
+    } catch (e) {
+      print('Error reading favorite folders: $e');
+      return [];
+    }
+  }
+
+  /// Add a folder to favorites
+  Future<void> addFavoriteFolder(String folderPath) async {
+    try {
+      final favorites = await getFavoriteFolders();
+      if (!favorites.contains(folderPath)) {
+        favorites.add(folderPath);
+        await _prefs?.setString('market_favorite_folders', jsonEncode(favorites));
+        notifyListeners();
+      }
+    } catch (e) {
+      print('Error adding favorite folder: $e');
+    }
+  }
+
+  /// Remove a folder from favorites
+  Future<void> removeFavoriteFolder(String folderPath) async {
+    try {
+      final favorites = await getFavoriteFolders();
+      favorites.remove(folderPath);
+      await _prefs?.setString('market_favorite_folders', jsonEncode(favorites));
+      notifyListeners();
+    } catch (e) {
+      print('Error removing favorite folder: $e');
+    }
+  }
+
+  /// Check if a folder is in favorites
+  Future<bool> isFavoriteFolder(String folderPath) async {
+    final favorites = await getFavoriteFolders();
+    return favorites.contains(folderPath);
+  }
+
+  // Market Folder File Tracking (for notifications)
+  /// Get tracked files for a folder (last known file list)
+  Future<Map<String, List<String>>> getTrackedFolderFiles() async {
+    try {
+      final trackedJson = _prefs?.getString('market_tracked_folder_files');
+      if (trackedJson == null || trackedJson.isEmpty) {
+        return {};
+      }
+      final Map<String, dynamic> tracked = jsonDecode(trackedJson);
+      return tracked.map((key, value) => MapEntry(key, (value as List).cast<String>()));
+    } catch (e) {
+      print('Error reading tracked folder files: $e');
+      return {};
+    }
+  }
+
+  /// Update tracked files for a folder
+  Future<void> updateTrackedFolderFiles(String folderPath, List<String> fileNames) async {
+    try {
+      final tracked = await getTrackedFolderFiles();
+      tracked[folderPath] = fileNames;
+      await _prefs?.setString('market_tracked_folder_files', jsonEncode(tracked));
+      notifyListeners();
+    } catch (e) {
+      print('Error updating tracked folder files: $e');
+    }
   }
   
   // Polling Interval (in seconds)

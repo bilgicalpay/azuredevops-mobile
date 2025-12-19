@@ -4,12 +4,17 @@
 /// Periyodik kontroller yaparak yeni atamalar ve güncellemeler için bildirim gönderir.
 /// 
 /// @author Alpay Bilgiç
+library;
 
 import 'dart:async';
+import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:dio/dio.dart';
+import 'package:html/parser.dart' as html_parser;
 import 'work_item_service.dart' show WorkItemService, WorkItem;
 import 'notification_service.dart';
+import 'market_service.dart';
 
 /// Arka plan görev servisi sınıfı
 /// Uygulama kapalıyken bile periyodik kontroller yapar
@@ -22,11 +27,11 @@ class BackgroundTaskService {
   bool _isRunning = false;
   final WorkItemService _workItemService = WorkItemService();
   final NotificationService _notificationService = NotificationService();
-  Map<int, int> _workItemRevisions = {};
-  Map<int, String?> _workItemAssignees = {}; // Track assignees to detect assignee changes
-  Map<int, DateTime?> _workItemChangedDates = {}; // Track changed dates for better change detection
+  final Map<int, int> _workItemRevisions = {};
+  final Map<int, String?> _workItemAssignees = {}; // Track assignees to detect assignee changes
+  final Map<int, DateTime?> _workItemChangedDates = {}; // Track changed dates for better change detection
   Set<int> _knownWorkItemIds = {};
-  Set<int> _notifiedWorkItemIds = {}; // Track which work items we've already notified about
+  final Set<int> _notifiedWorkItemIds = {}; // Track which work items we've already notified about
 
   /// Initialize the service (called on app start)
   Future<void> init() async {
@@ -53,6 +58,7 @@ class BackgroundTaskService {
     // Initial check
     print('🔄 [BackgroundTaskService] Performing initial check...');
     await _checkForChanges();
+    await _checkForMarketFolderUpdates();
     
     // Get polling interval from settings
     final prefs = await SharedPreferences.getInstance();
@@ -61,7 +67,7 @@ class BackgroundTaskService {
     
     // Start periodic checks with configured interval
     _backgroundTimer?.cancel();
-    print('⏰ [BackgroundTaskService] Setting up periodic timer (${clampedInterval} second intervals)...');
+    print('⏰ [BackgroundTaskService] Setting up periodic timer ($clampedInterval second intervals)...');
     _backgroundTimer = Timer.periodic(Duration(seconds: clampedInterval), (timer) async {
       if (!_isRunning) {
         print('⚠️ [BackgroundTaskService] Timer stopped: _isRunning = false');
@@ -71,6 +77,7 @@ class BackgroundTaskService {
       
       print('🔄 [BackgroundTaskService] Periodic check at ${DateTime.now()}...');
       await _checkForChanges();
+      await _checkForMarketFolderUpdates();
     });
     
     print('✅ [BackgroundTaskService] Background task service started successfully');
@@ -306,6 +313,216 @@ class BackgroundTaskService {
     } catch (e) {
       print('Error initializing tracking: $e');
     }
+  }
+
+  /// Check for new files in favorite market folders
+  Future<void> _checkForMarketFolderUpdates() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final marketUrl = prefs.getString('market_repo_url');
+      
+      if (marketUrl == null || marketUrl.isEmpty) {
+        return; // No market URL configured
+      }
+
+      // Get favorite folders
+      final favoritesJson = prefs.getString('market_favorite_folders');
+      if (favoritesJson == null || favoritesJson.isEmpty) {
+        return; // No favorite folders
+      }
+
+      final List<dynamic> favoriteFolders = jsonDecode(favoritesJson);
+      if (favoriteFolders.isEmpty) {
+        return; // No favorite folders
+      }
+
+      // Get tracked files
+      final trackedJson = prefs.getString('market_tracked_folder_files');
+      Map<String, List<String>> trackedFiles = {};
+      if (trackedJson != null && trackedJson.isNotEmpty) {
+        try {
+          final Map<String, dynamic> tracked = jsonDecode(trackedJson);
+          trackedFiles = tracked.map((key, value) => MapEntry(key, (value as List).cast<String>()));
+        } catch (e) {
+          print('⚠️ [BackgroundTaskService] Error parsing tracked files: $e');
+        }
+      }
+
+      print('🔄 [BackgroundTaskService] Checking ${favoriteFolders.length} favorite market folders...');
+
+      for (var folderPath in favoriteFolders) {
+        try {
+          // FIXED Bug #2: Normalize marketUrl before concatenation
+          // Prevents malformed URLs like "https://example.com/_static/marketandroid/"
+          // when marketUrl doesn't have trailing slash
+          String normalizedMarketUrl = marketUrl;
+          if (!normalizedMarketUrl.endsWith('/')) {
+            normalizedMarketUrl += '/';
+          }
+          final folderUrl = '$normalizedMarketUrl$folderPath';
+          
+          // Get folder name from path (e.g., "android/bankacilik-uygulamasi/" -> "bankacilik-uygulamasi")
+          final folderName = folderPath.split('/').where((p) => p.isNotEmpty).lastOrNull ?? folderPath;
+          
+          // Get current files in folder
+          final currentFiles = await _getFilesFromFolder(folderUrl);
+          final currentFileNames = currentFiles.map((a) => a.name).toList();
+          
+          // Get previously tracked files
+          final previousFiles = trackedFiles[folderPath] ?? [];
+          
+          // Find new files
+          final newFiles = currentFileNames.where((name) => !previousFiles.contains(name)).toList();
+          
+          if (newFiles.isNotEmpty) {
+            print('🆕 [BackgroundTaskService] New files found in folder $folderName: $newFiles');
+            
+            // Send notification for each new file
+            for (var fileName in newFiles) {
+              await _notificationService.showLocalNotification(
+                title: 'Yeni Dosya: $folderName',
+                body: fileName,
+                payload: 'market:$folderPath:$fileName',
+              );
+            }
+            
+            // Update tracked files
+            trackedFiles[folderPath] = currentFileNames;
+          }
+        } catch (e) {
+          print('⚠️ [BackgroundTaskService] Error checking folder $folderPath: $e');
+          continue; // Continue with next folder
+        }
+      }
+
+      // Save updated tracked files
+      if (trackedFiles.isNotEmpty) {
+        await prefs.setString('market_tracked_folder_files', jsonEncode(trackedFiles));
+      }
+
+      print('✅ [BackgroundTaskService] Market folder check completed');
+    } catch (e, stackTrace) {
+      print('❌ [BackgroundTaskService] Market folder check error: $e');
+      print('❌ [BackgroundTaskService] Stack trace: $stackTrace');
+    }
+  }
+
+  /// Get files from a market folder (simplified version for background service)
+  Future<List<Artifact>> _getFilesFromFolder(String folderUrl) async {
+    try {
+      // Use Dio directly for background service (no auth needed for public IIS directories)
+      final dio = Dio();
+      
+      // Normalize URL
+      String normalizedUrl = folderUrl.trim();
+      if (!normalizedUrl.endsWith('/')) {
+        normalizedUrl += '/';
+      }
+
+      final response = await dio.get(
+        normalizedUrl,
+        options: Options(
+          headers: {
+            'Accept': 'text/html,application/json',
+          },
+          responseType: ResponseType.plain,
+        ),
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final content = response.data as String;
+        if (content.isEmpty) return [];
+
+        // Try JSON first
+        try {
+          final jsonData = jsonDecode(content);
+          if (jsonData is List) {
+            return _parseJsonFiles(jsonData, normalizedUrl);
+          } else if (jsonData is Map && jsonData['files'] != null) {
+            return _parseJsonFiles(jsonData['files'] as List, normalizedUrl);
+          }
+        } catch (e) {
+          // Not JSON, try HTML
+        }
+
+        // Parse HTML
+        return _parseHtmlFiles(content, normalizedUrl);
+      }
+      
+      return [];
+    } catch (e) {
+      print('⚠️ [BackgroundTaskService] Error getting files from folder: $e');
+      return [];
+    }
+  }
+
+  /// Parse JSON files (simplified)
+  List<Artifact> _parseJsonFiles(List<dynamic> files, String baseUrl) {
+    final artifacts = <Artifact>[];
+    for (var file in files) {
+      if (file is Map<String, dynamic>) {
+        final name = file['name'] as String? ?? '';
+        final isDirectory = file['isDirectory'] as bool? ?? false;
+        if (!isDirectory && (name.toLowerCase().endsWith('.apk') || 
+            name.toLowerCase().endsWith('.ipa') || 
+            name.toLowerCase().endsWith('.aab'))) {
+          artifacts.add(Artifact(
+            name: name,
+            downloadUrl: '$baseUrl$name',
+            size: file['size'] as int?,
+            contentType: 'application/octet-stream',
+          ));
+        }
+      }
+    }
+    return artifacts;
+  }
+
+  /// Parse HTML files (simplified)
+  List<Artifact> _parseHtmlFiles(String html, String baseUrl) {
+    final artifacts = <Artifact>[];
+    final document = html_parser.parse(html);
+    final links = document.querySelectorAll('a');
+    
+    for (var link in links) {
+      final href = link.attributes['href'];
+      if (href == null || href.isEmpty) continue;
+      if (href == '../' || href == '..' || href == './' || href == '.' || href.endsWith('/')) continue;
+      
+      String fileName = href;
+      if (fileName.contains('?')) fileName = fileName.split('?').first;
+      if (fileName.contains('#')) fileName = fileName.split('#').first;
+      
+      try {
+        fileName = Uri.decodeComponent(fileName);
+      } catch (e) {
+        // Ignore
+      }
+      
+      fileName = fileName.split('/').last.trim();
+      final lowerName = fileName.toLowerCase();
+      
+      if (lowerName.endsWith('.apk') || lowerName.endsWith('.ipa') || lowerName.endsWith('.aab')) {
+        String downloadUrl;
+        if (href.startsWith('http://') || href.startsWith('https://')) {
+          downloadUrl = href;
+        } else {
+          final baseUri = Uri.parse(baseUrl);
+          downloadUrl = baseUri.resolve(href).toString();
+        }
+        
+        if (!artifacts.any((a) => a.name == fileName)) {
+          artifacts.add(Artifact(
+            name: fileName,
+            downloadUrl: downloadUrl,
+            size: null,
+            contentType: 'application/octet-stream',
+          ));
+        }
+      }
+    }
+    
+    return artifacts;
   }
 }
 

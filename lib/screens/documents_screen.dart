@@ -4,6 +4,7 @@
 /// Güvenlik, altyapı ve MDM entegrasyon dokümantasyonlarını içerir.
 /// 
 /// @author Alpay Bilgiç
+library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -513,66 +514,97 @@ const String _marketContent = '''# Market Özelliği Kullanım Kılavuzu
 
 **Uygulama:** Azure DevOps Server 2022 Mobile App
 **Geliştirici:** Alpay Bilgiç
-**Versiyon:** 1.0.22+
+**Versiyon:** 1.0.25+
 
 ## Genel Bakış
 
-Market özelliği, Azure DevOps Git repository'den release'leri ve artifact'ları (APK/IPA) indirmenizi sağlar. Bu özellik sayesinde uygulamanın yeni versiyonlarını doğrudan mobil cihazınızdan indirebilirsiniz.
+Market özelliği, IIS static dizininde bulunan mobil uygulama (APK/IPA) dosyalarını doğrudan uygulama içinden görüntülemenizi ve indirmenizi sağlar. Bu sayede kullanıcılar, en güncel uygulama versiyonlarına kolayca erişebilir.
+
+## Özellikler
+
+✅ IIS static dizin entegrasyonu
+✅ HTML ve JSON directory listing desteği
+✅ APK, IPA, AAB dosyaları için otomatik filtreleme
+✅ Dosya boyutu gösterimi
+✅ Pull-to-refresh desteği
+✅ Loading ve hata durumları için kullanıcı geri bildirimi
+✅ Hem iOS hem Android uygulamalarında destek
 
 ## Kurulum
 
-### 1. Market Repository URL Ayarlama
+### 1. Market URL Ayarlama
 
 1. Uygulamayı açın
 2. Ana sayfada **Ayarlar** butonuna (⚙️ icon) tıklayın
 3. **Market Ayarları** bölümüne gidin
-4. **Market Repository URL** alanına Azure DevOps Git repository URL'sini girin
+4. **Market URL** alanına IIS static dizin URL'sini girin
 
 #### URL Formatı
 
 ```
-https://{instance}/{collection}/{project}/_git/{repository}
+https://{instance}/_static/market/
 ```
 
 #### Örnek URL
 
 ```
-https://devops.higgscloud.com/Dev/demo/_git/azuredevops-server-mobile
+https://devops.higgscloud.com/_static/market/
 ```
 
 #### URL Bileşenleri
 
-- **instance:** Azure DevOps Server URL'si (örn: `devops.higgscloud.com`)
-- **collection:** Collection adı (örn: `Dev`)
-- **project:** Project adı (örn: `demo`)
-- **repository:** Git repository adı (örn: `azuredevops-server-mobile`)
+- **instance:** IIS Server URL'si (örn: `devops.higgscloud.com`)
+- **path:** Static dizin yolu (örn: `/_static/market/`)
+
+**Not:** URL'nin `/` ile bitmesi önerilir.
 
 5. **Kaydet** butonuna tıklayın
+
+## IIS Dizin Yapılandırması
+
+### Gereksinimler
+
+- IIS'te static dosya servisi aktif olmalıdır
+- Directory browsing (dizin listeleme) aktif olmalıdır
+- HTTPS erişimi önerilir
+
+### Dosya Yerleşimi
+
+Dosyalarınızı IIS dizinine şu şekilde yerleştirebilirsiniz:
+
+```
+/_static/market/
+├── azuredevops-1.0.25.apk
+├── azuredevops-1.0.24.apk
+├── azuredevops-1.0.25.ipa
+├── azuredevops-1.0.24.ipa
+└── app-release.aab
+```
+
+**Not:** Dosya adlandırması önemli değildir. Uygulama otomatik olarak `.apk`, `.ipa` ve `.aab` uzantılı dosyaları filtreler.
 
 ## Kullanım
 
 ### 1. Market Sayfasına Erişim
 
 1. Ana sayfada **Market** butonuna (🏪 store icon) tıklayın
-2. Market sayfası açılır ve release'ler yüklenir
+2. Market sayfası açılır ve IIS dizinindeki dosyalar yüklenir
 
-### 2. Release'leri Görüntüleme
+### 2. Dosyaları Görüntüleme
 
-- Release'ler en yeni önce sıralanır
-- Her release için şu bilgiler gösterilir:
-  - **Tag/Name:** Release adı (örn: `v1.0.22`)
-  - **Tarih:** Release tarihi (varsa)
-  - **Açıklama:** Release açıklaması (varsa)
-  - **Artifact'lar:** İndirilebilir dosyalar (APK, IPA, AAB)
+- Dosyalar dosya adına göre sıralanır (yeni önce)
+- Her dosya için şu bilgiler gösterilir:
+  - **Dosya Adı:** Örneğin, `azuredevops-1.0.25.apk`
+  - **Dosya Boyutu:** KB veya MB cinsinden
+  - **Dosya Tipi:** Android (APK/AAB) veya iOS (IPA) ikonu
 
-### 3. Artifact İndirme
+### 3. Dosya İndirme
 
-1. İstediğiniz release'i bulun
-2. İndirmek istediğiniz artifact'ın yanındaki **İndir** butonuna (⬇️ icon) tıklayın
-3. External browser/download manager açılır
-4. Dosya indirilir
+1. İndirmek istediğiniz dosyanın yanındaki **İndir** butonuna (⬇️ icon) tıklayın
+2. External browser/download manager açılır
+3. Dosya indirilir
 
-#### Desteklenen Artifact'lar
+#### Desteklenen Dosya Tipleri
 
 - **Android APK:** `.apk` dosyaları (Android cihazlar için)
 - **iOS IPA:** `.ipa` dosyaları (iOS cihazlar için)
@@ -585,97 +617,92 @@ https://devops.higgscloud.com/Dev/demo/_git/azuredevops-server-mobile
 
 ## Sorun Giderme
 
-### Market Repository URL Ayarlanmamış
+### Market URL Ayarlanmamış
 
-**Hata:** "Market repository URL ayarlanmamış. Lütfen Ayarlar'dan repository URL'sini girin."
+**Hata:** "Market URL ayarlanmamış. Lütfen Ayarlar'dan Market URL'sini girin."
 
 **Çözüm:**
 1. Ayarlar sayfasına gidin
-2. Market Repository URL'yi girin
+2. Market URL'yi girin (örn: `https://devops.higgscloud.com/_static/market/`)
 3. Kaydet butonuna tıklayın
 4. Market sayfasını yenileyin
 
-### Release'ler Yüklenmiyor
+### Dosyalar Yüklenmiyor
 
 **Olası Nedenler:**
-- Repository URL'si yanlış formatlanmış
-- Authentication token geçersiz veya eksik
+- Market URL'si yanlış formatlanmış
+- IIS dizinine erişilemiyor
 - Network bağlantısı yok
-- Azure DevOps Server erişilemiyor
+- IIS directory browsing kapalı
 
 **Çözüm:**
-1. Repository URL'sini kontrol edin
-2. Giriş yapıp yapmadığınızı kontrol edin
+1. Market URL'sini kontrol edin
+2. IIS dizinine tarayıcıdan erişip erişemediğinizi kontrol edin
 3. Network bağlantınızı kontrol edin
-4. Azure DevOps Server'ın erişilebilir olduğunu kontrol edin
+4. IIS yöneticisi ile iletişime geçin (directory browsing aktif mi?)
 
-### Artifact İndirme Başarısız
+### İndirme İşlemi Başlamıyor
 
 **Olası Nedenler:**
-- Artifact dosyası repository'de bulunamıyor
-- Authentication token geçersiz
-- Dosya yolu yanlış
+- Cihazın varsayılan tarayıcısı çalışmıyor
+- İndirme yöneticisi yapılandırılmamış
+- Dosya URL'si geçersiz
 
 **Çözüm:**
-1. Repository'de artifact'ların doğru klasörde olduğunu kontrol edin:
-   - Android APK: `releases/android/azuredevops-{version}.apk`
-   - iOS IPA: `releases/ios/azuredevops-{version}.ipa`
-2. Authentication token'ınızın geçerli olduğunu kontrol edin
-3. Giriş yapıp tekrar deneyin
+1. Cihazınızın varsayılan tarayıcısının doğru çalıştığından emin olun
+2. İndirme yöneticisinin yapılandırıldığından emin olun
+3. Dosyanın IIS dizininde mevcut olduğunu kontrol edin
 
 ## Teknik Detaylar
 
-### API Kullanımı
+### Directory Listing Parsing
 
-Market özelliği şu API'leri kullanır:
+Market özelliği şu yöntemleri kullanır:
 
-1. **Azure DevOps Releases API** (öncelikli)
-   - Endpoint: `{instance}/{collection}/{project}/_apis/release/releases?api-version=6.0`
-   - Release'leri ve artifact'ları çeker
+1. **JSON Directory Listing** (öncelikli)
+   - IIS'te JSON API varsa kullanılır
+   - Daha hızlı ve güvenilir
 
-2. **Git Tags API** (fallback)
-   - Endpoint: `{instance}/{collection}/{project}/_apis/git/repositories/{repoId}/refs?filter=tags&api-version=6.0`
-   - Tag'lerden release'leri çeker
+2. **HTML Directory Listing** (fallback)
+   - IIS varsayılan dizin listesi HTML formatında parse edilir
+   - `<a>` tag'lerinden dosya linkleri çıkarılır
+
+### Dosya Filtreleme
+
+Uygulama sadece şu uzantılı dosyaları gösterir:
+- `.apk` - Android Application Package
+- `.ipa` - iOS Application Archive
+- `.aab` - Android App Bundle
 
 ### Güvenlik
 
-- Tüm API çağrıları **Certificate Pinning** ile korunur
-- Authentication token ile güvenli indirme sağlanır
+- Tüm bağlantılar **Certificate Pinning** ile korunur
 - HTTPS üzerinden tüm iletişim yapılır
-
-### Artifact Yolu
-
-Artifact'lar şu klasörlerde aranır:
-
-- `releases/android/azuredevops-{version}.apk`
-- `releases/android/azuredevops.apk`
-- `releases/ios/azuredevops-{version}.ipa`
-- `releases/ios/azuredevops.ipa`
-- `releases/android/app-release.aab`
+- Dosya indirme linkleri doğrudan IIS sunucusundan gelir
 
 ## Örnek Kullanım Senaryosu
 
 ### Senaryo: Yeni Versiyon İndirme
 
-1. **Bildirim:** Yeni versiyon (v1.0.23) yayınlandı
+1. **Bildirim:** Yeni versiyon (v1.0.25) yayınlandı
 2. **Market'e Git:** Ana sayfada Market butonuna tıkla
-3. **Release'i Bul:** v1.0.23 release'ini bul
-4. **APK İndir:** Android APK'nın yanındaki İndir butonuna tıkla
+3. **Dosyayı Bul:** `azuredevops-1.0.25.apk` dosyasını bul
+4. **APK İndir:** Dosyanın yanındaki İndir butonuna tıkla
 5. **Kurulum:** İndirilen APK'yı kur (Android'de "Bilinmeyen kaynaklardan yükleme" izni gerekebilir)
 
 ## Notlar
 
 - Market özelliği hem iOS hem Android'de çalışır
 - İndirme işlemi external browser/download manager üzerinden yapılır
-- Artifact'lar repository'de doğru klasörde olmalıdır
-- Authentication token geçerli olmalıdır
+- Dosyalar IIS dizininde doğrudan erişilebilir olmalıdır
 - Network bağlantısı gereklidir
+- IIS directory browsing aktif olmalıdır
 
 ## Destek
 
 Market özelliği ile ilgili sorunlar için:
 - Teknik destek: Geliştirici ile iletişime geçin
-- Repository sorunları: Azure DevOps yöneticisi ile iletişime geçin
+- IIS sorunları: Sistem yöneticisi ile iletişime geçin
 ''';
 
 const String _overviewContent = '''# Azure DevOps Server 2022 Mobile App
