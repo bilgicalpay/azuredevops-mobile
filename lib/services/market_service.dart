@@ -10,7 +10,6 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show TargetPlatform;
-import 'package:flutter/services.dart' show Platform;
 import 'package:logging/logging.dart';
 import 'package:html/parser.dart' as html_parser;
 import 'package:html/dom.dart' as html_dom;
