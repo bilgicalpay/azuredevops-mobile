@@ -4,6 +4,7 @@
 /// Work item'ları görüntüleme, detay sayfasına gitme ve yenileme işlemlerini yönetir.
 /// 
 /// @author Alpay Bilgiç
+library;
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -242,37 +243,155 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final authService = Provider.of<AuthService>(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  height: 32,
-                  child: Image.asset(
-                    'assets/images/logo.png',
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      return const SizedBox.shrink();
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(180), // AppBar için daha fazla yükseklik
+        child: SafeArea(
+          child: AppBar(
+            toolbarHeight: 180,
+            title: Padding(
+              padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Üst satır: Logo, AzureDevOps yazısı ve versiyon
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    height: 28,
+                    child: Image.asset(
+                      'assets/images/logo.png',
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const SizedBox.shrink();
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'AzureDevOps',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      if (_appVersion.isNotEmpty)
+                        Text(
+                          _appVersion,
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+              // Alt satır: Menüler
+              Container(
+                margin: const EdgeInsets.only(top: 8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                  IconButton(
+                    icon: const Icon(Icons.query_stats),
+                    color: Colors.blue.shade900,
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const QueriesScreen(),
+                        ),
+                      );
                     },
+                    tooltip: 'My Queries',
                   ),
-                ),
-                const SizedBox(width: 12),
-                const Text(
-                  'AzureDevOps',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                  IconButton(
+                    icon: const Icon(Icons.description),
+                    color: Colors.blue.shade900,
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const DocumentsScreen(),
+                        ),
+                      );
+                    },
+                    tooltip: 'Belgeler',
                   ),
-                ),
-              ],
+                  IconButton(
+                    icon: const Icon(Icons.store),
+                    color: Colors.blue.shade900,
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MarketScreen(),
+                        ),
+                      );
+                    },
+                    tooltip: 'Market',
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.settings),
+                    color: Colors.blue.shade900,
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SettingsScreen(),
+                        ),
+                      ).then((_) async {
+                        // Reload wiki content when returning from settings
+                        _loadWikiContent();
+                        // Restart realtime service with new polling interval if changed
+                        final authService = Provider.of<AuthService>(context, listen: false);
+                        final storage = Provider.of<StorageService>(context, listen: false);
+                        await RealtimeService().restartPolling(authService, storage);
+                        // Restart background service
+                        BackgroundTaskService().stop();
+                        await BackgroundTaskService().start();
+                        // Restart background worker service with new interval
+                        await BackgroundWorkerService.stop();
+                        await BackgroundWorkerService.start();
+                      });
+                    },
+                    tooltip: 'Ayarlar',
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.refresh),
+                    color: Colors.blue.shade900,
+                    onPressed: () {
+                      _loadWorkItems();
+                      _loadWikiContent();
+                    },
+                    tooltip: 'Yenile',
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.logout),
+                    color: Colors.blue.shade900,
+                    onPressed: () async {
+                      await authService.logout();
+                    },
+                    tooltip: 'Çıkış',
+                  ),
+                ],
+              ),
             ),
-            // Version display below logo
-            if (_appVersion.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 4.0),
+          ],
+        ),
+        ),
+        actions: [
+          // Versiyon bilgisi en sağda, üstte
+          if (_appVersion.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(right: 16.0, top: 8.0),
+              child: Center(
                 child: Text(
                   _appVersion,
                   style: const TextStyle(
@@ -282,88 +401,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   ),
                 ),
               ),
-          ],
-        ),
-        centerTitle: true,
-        automaticallyImplyLeading: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.query_stats),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const QueriesScreen(),
-                ),
-              );
-            },
-            tooltip: 'My Queries',
-          ),
-          IconButton(
-            icon: const Icon(Icons.description),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const DocumentsScreen(),
-                ),
-              );
-            },
-            tooltip: 'Belgeler',
-          ),
-          IconButton(
-            icon: const Icon(Icons.store),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const MarketScreen(),
-                ),
-              );
-            },
-            tooltip: 'Market',
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const SettingsScreen(),
-                ),
-              ).then((_) async {
-                // Reload wiki content when returning from settings
-                _loadWikiContent();
-                // Restart realtime service with new polling interval if changed
-                final authService = Provider.of<AuthService>(context, listen: false);
-                final storage = Provider.of<StorageService>(context, listen: false);
-                await RealtimeService().restartPolling(authService, storage);
-                // Restart background service
-                BackgroundTaskService().stop();
-                await BackgroundTaskService().start();
-                // Restart background worker service with new interval
-                await BackgroundWorkerService.stop();
-                await BackgroundWorkerService.start();
-              });
-            },
-            tooltip: 'Ayarlar',
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              _loadWorkItems();
-              _loadWikiContent();
-            },
-            tooltip: 'Yenile',
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await authService.logout();
-            },
-            tooltip: 'Çıkış',
-          ),
+            ),
         ],
+        centerTitle: false,
+        automaticallyImplyLeading: false,
+          ),
+        ),
       ),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -464,7 +507,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                   const SizedBox(height: 4),
                                                   Text(
                                                     wikiUrl != null && wikiUrl.isNotEmpty
-                                                        ? 'URL: ${wikiUrl.length > 50 ? wikiUrl.substring(0, 50) + "..." : wikiUrl}'
+                                                        ? 'URL: ${wikiUrl.length > 50 ? "${wikiUrl.substring(0, 50)}..." : wikiUrl}'
                                                         : 'Wiki URL\'si ayarlanmamış',
                                                     style: const TextStyle(color: Colors.grey, fontSize: 12),
                                                     textAlign: TextAlign.center,

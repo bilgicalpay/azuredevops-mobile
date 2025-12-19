@@ -44,6 +44,57 @@ subprojects {
                 println("⚠️  Could not access android extension for root_detector: ${e.message}")
             }
         }
+        
+        // Set JVM target for all Kotlin tasks
+        project.tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+            compilerOptions {
+                jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+            }
+        }
+        
+        // Set Java compatibility for all projects
+        project.tasks.withType<JavaCompile>().configureEach {
+            sourceCompatibility = "17"
+            targetCompatibility = "17"
+        }
+        
+        // Fix package_info_plus JVM target compatibility
+        if (project.name == "package_info_plus") {
+            try {
+                val android = project.extensions.findByName("android")
+                if (android != null) {
+                    val androidExtension = android as? com.android.build.gradle.BaseExtension
+                    if (androidExtension != null) {
+                        // Force Java 17 for package_info_plus
+                        androidExtension.compileOptions {
+                            sourceCompatibility = org.gradle.api.JavaVersion.VERSION_17
+                            targetCompatibility = org.gradle.api.JavaVersion.VERSION_17
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                println("⚠️  Could not set Java compatibility for package_info_plus: ${e.message}")
+            }
+        }
+        
+        // Fix root_detector JVM target compatibility
+        if (project.name == "root_detector") {
+            try {
+                val android = project.extensions.findByName("android")
+                if (android != null) {
+                    val androidExtension = android as? com.android.build.gradle.BaseExtension
+                    if (androidExtension != null) {
+                        // Force Java 17 for root_detector
+                        androidExtension.compileOptions {
+                            sourceCompatibility = org.gradle.api.JavaVersion.VERSION_17
+                            targetCompatibility = org.gradle.api.JavaVersion.VERSION_17
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                println("⚠️  Could not set Java compatibility for root_detector: ${e.message}")
+            }
+        }
     }
 }
 
