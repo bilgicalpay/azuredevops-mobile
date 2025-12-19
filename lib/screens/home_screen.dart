@@ -243,9 +243,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: 120, // AppBar yüksekliğini artır
+        toolbarHeight: 140, // AppBar yüksekliğini daha da artır
         title: Padding(
-          padding: const EdgeInsets.only(top: 16.0, bottom: 8.0),
+          padding: const EdgeInsets.only(top: 20.0, bottom: 8.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
