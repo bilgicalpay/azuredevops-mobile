@@ -19,7 +19,7 @@ Bu uygulama, Azure DevOps Server 2022 on-premise kurulumları için mobil erişi
 - ✅ MDM entegrasyonu
 - ✅ Güvenli token saklama (FlutterSecureStorage)
 - ✅ Belgeler ekranı (Güvenlik, Altyapı, MDM dokümantasyonları)
-- ✅ **Market Özelliği:** Azure DevOps Git repository'den APK ve IPA dosyalarını indirme
+- ✅ **Market Özelliği:** IIS static dizininden APK ve IPA dosyalarını indirme
 
 ## Sistem Gereksinimleri
 
@@ -51,26 +51,62 @@ flutter build ipa
 - Azure DevOps Server URL'si
 - Personal Access Token (PAT) veya AD kimlik bilgileri
 - Collection adı (opsiyonel)
-- **Market Repository URL (opsiyonel):** APK ve IPA dosyalarını indirmek için
+- **Market URL (opsiyonel):** IIS static dizin URL'si (APK ve IPA dosyalarını indirmek için)
 
 ### Market Özelliği
 
-Market özelliği, Azure DevOps Git repository'den release'leri ve artifact'ları (APK/IPA) indirmenizi sağlar.
+Market özelliği, IIS static dizininden APK ve IPA dosyalarını indirmenizi sağlar.
 
-#### Kurulum
+#### IIS Yapılandırması
+
+1. **IIS'te static dosya servisini aktif edin**
+2. **Directory browsing'i aktif edin**
+3. **Market dizin yapısını oluşturun:**
+   ```
+   C:\inetpub\wwwroot\_static\market\
+   ├── ProductA\
+   │   ├── 1.0.0\
+   │   │   ├── ProductA-1.0.0.apk
+   │   │   └── ProductA-1.0.0.ipa
+   │   └── 1.0.1\
+   └── ProductB\
+       └── 2.0.0\
+   ```
+
+4. **web.config dosyası oluşturun:**
+   
+   Ana market dizinine (`C:\inetpub\wwwroot\_static\market\`) `web.config` dosyası ekleyin:
+   
+   ```xml
+   <?xml version="1.0" encoding="UTF-8"?>
+   <configuration>
+       <system.webServer>
+           <staticContent>
+               <mimeMap fileExtension=".IPA" mimeType="application/octet-stream" />
+               <mimeMap fileExtension=".APK" mimeType="application/octet-stream" />
+           </staticContent>
+       </system.webServer>
+   </configuration>
+   ```
+
+5. **HTTPS erişimini sağlayın**
+
+#### Uygulama İçi Yapılandırma
 
 1. **Ayarlar** sayfasına gidin
-2. **Market Repository URL** alanına Azure DevOps Git repository URL'sini girin
-   - Format: `https://{instance}/{collection}/{project}/_git/{repository}`
-   - Örnek: `https://devops.higgscloud.com/Dev/demo/_git/azuredevops-server-mobile`
+2. **Market URL** alanına IIS static dizin URL'sini girin
+   - Format: `https://your-server.com/_static/market/`
+   - Örnek: `https://devops.higgscloud.com/_static/market/`
 3. **Kaydet** butonuna tıklayın
 
 #### Kullanım
 
-1. Ana sayfada **Market** butonuna (store icon) tıklayın
-2. Release listesi görüntülenir (en yeni önce)
-3. İstediğiniz release'in altındaki **İndir** butonuna tıklayın
-4. APK veya IPA dosyası indirilir (external browser/download manager açılır)
+1. Ana sayfada **Market** ikonuna tıklayın
+2. Klasör yapısı görüntülenir (Product → Version → Files)
+3. İstediğiniz dosyaya tıklayın
+4. Dosya otomatik olarak indirilir:
+   - **Android:** Downloads klasörüne kaydedilir
+   - **iOS:** Files app'te görünür (Documents dizini)
 
 #### Desteklenen Artifact'lar
 
@@ -80,10 +116,12 @@ Market özelliği, Azure DevOps Git repository'den release'leri ve artifact'lar�
 
 #### Notlar
 
-- Market özelliği Azure DevOps Releases API veya Git Tags API kullanır
-- Artifact'lar `releases/android/` ve `releases/ios/` klasörlerinde aranır
-- İndirme işlemi external browser/download manager üzerinden yapılır
-- Authentication token ile güvenli indirme sağlanır
+- Market özelliği, IIS static dizininden dosyaları listeler ve indirir
+- Git repository veya Azure DevOps Releases API kullanmaz
+- Directory listing (HTML veya JSON) formatını destekler
+- APK, IPA ve AAB dosyaları otomatik olarak filtrelenir
+
+Detaylı bilgi için [docs/README.md](docs/README.md#market-özelliği-ile-dağıtım) dosyasına bakın.
 
 ### MDM Entegrasyonu
 Detaylı bilgi için `docs/MDM_INTEGRATION.md` dosyasına bakın.
