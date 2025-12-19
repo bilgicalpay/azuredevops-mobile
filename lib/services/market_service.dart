@@ -8,7 +8,7 @@ library;
 
 import 'dart:convert';
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show TargetPlatform;
 import 'package:flutter/services.dart' show Platform;
 import 'package:logging/logging.dart';
