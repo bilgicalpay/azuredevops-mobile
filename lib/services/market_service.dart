@@ -248,6 +248,15 @@ class MarketService {
             }
           }
           
+          // CRITICAL: Skip parent directories
+          // If href has FEWER or EQUAL segments than base, it's a parent/current directory - skip it!
+          // Example: base="/_static/market/DEF/" (3 segments) vs href="/_static/market/" (2 segments) = parent!
+          if (hrefPathSegments.length <= basePathSegments.length) {
+            // This is a parent or current directory link, skip it
+            continue;
+          }
+          
+
           // Extract the NEW segments (after the matching base path)
           if (lastMatchIndex >= 0 && lastMatchIndex < hrefPathSegments.length - 1) {
             // Get segments after the last match
