@@ -138,7 +138,6 @@ class _MarketScreenState extends State<MarketScreen> {
     setState(() {
       _isLoading = true;
       _error = null;
-      _currentFolderPath = folderPath;
     });
 
     try {
@@ -163,13 +162,30 @@ class _MarketScreenState extends State<MarketScreen> {
         normalizedFolderPath += '/';
       }
       
+      // Build full path by combining current path with new folder
+      // If we're at root (_currentFolderPath is null), use just the folderPath
+      // Otherwise, append folderPath to current path
+      String fullPath = normalizedFolderPath;
+      if (_currentFolderPath != null && _currentFolderPath!.isNotEmpty) {
+        // Remove trailing slash from current path if present
+        String currentPath = _currentFolderPath!.endsWith('/') 
+            ? _currentFolderPath!.substring(0, _currentFolderPath!.length - 1)
+            : _currentFolderPath!;
+        fullPath = '$currentPath/$normalizedFolderPath';
+      }
+      
+      // Update current folder path
+      setState(() {
+        _currentFolderPath = fullPath;
+      });
+      
       // Ensure marketUrl ends with /
       String normalizedMarketUrl = marketUrl;
       if (!normalizedMarketUrl.endsWith('/')) {
         normalizedMarketUrl += '/';
       }
       
-      final folderUrl = '$normalizedMarketUrl$normalizedFolderPath';
+      final folderUrl = '$normalizedMarketUrl$fullPath';
       final folders = await _marketService!.getFolders(folderUrl);
       final allArtifacts = await _marketService!.getFiles(folderUrl);
       
@@ -182,9 +198,9 @@ class _MarketScreenState extends State<MarketScreen> {
       ).toList();
       
       // Update tracked files for favorite folders
-      if (_favoriteFolders.contains(folderPath)) {
+      if (_favoriteFolders.contains(fullPath)) {
         final fileNames = fileArtifacts.map((a) => a.name).toList();
-        await storage.updateTrackedFolderFiles(folderPath, fileNames);
+        await storage.updateTrackedFolderFiles(fullPath, fileNames);
       }
       
       setState(() {
