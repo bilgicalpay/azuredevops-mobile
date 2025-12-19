@@ -93,10 +93,27 @@ Market özelliği, IIS static dizininden APK ve IPA dosyalarını indirmenizi sa
 
 #### Uygulama İçi Yapılandırma
 
+Market kullanımı için IIS altında bir dizin oluşturularak bu HTML adresi uygulamaya girilir. O dizin altına da product ve versionlar ile ayrılmış dizinler oluşturulur ve APK ve IPA dosyaları buraya atılır. Ancak uygulama üzerinden dosya indirilebilmesi için aşağıdaki gibi ana folder altına `web.config` eklenmelidir.
+
+**web.config içeriği:**
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <system.webServer>
+        <staticContent>
+            <mimeMap fileExtension=".IPA" mimeType="application/octet-stream" />
+            <mimeMap fileExtension=".APK" mimeType="application/octet-stream" />
+        </staticContent>
+    </system.webServer>
+</configuration>
+```
+
+**Yapılandırma Adımları:**
+
 1. **Ayarlar** sayfasına gidin
-2. **Market URL** alanına IIS static dizin URL'sini girin
-   - Format: `https://your-server.com/_static/market/`
-   - Örnek: `https://devops.higgscloud.com/_static/market/`
+2. **Market URL** alanına APK ve IPA dosyalarını uygun klasörlerle yükleyeceğiniz bir dizini IIS altında static dosyalar için oluşturmalısınız. Ardından bu repository URL'sini girin
+   - Örnek: `https://uygun_iis.com/_static_files/market`
 3. **Kaydet** butonuna tıklayın
 
 #### Kullanım
