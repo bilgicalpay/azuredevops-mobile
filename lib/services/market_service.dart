@@ -653,7 +653,7 @@ class MarketService {
       
       // Android için platformDefault kullan, iOS için externalApplication
       // Android'de externalApplication bazen "couldn't launch" hatası veriyor
-      final isAndroid = !kIsWeb && Platform.isAndroid;
+      final isAndroid = !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
       final launchMode = isAndroid 
           ? LaunchMode.platformDefault 
           : LaunchMode.externalApplication;
