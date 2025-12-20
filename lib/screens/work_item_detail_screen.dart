@@ -1407,8 +1407,8 @@ class _WorkItemDetailScreenState extends State<WorkItemDetailScreen> {
           
           // Try to find parameterizedstring tags within the step
           // Match both with and without quotes around type attribute
-          final actionRegex = RegExp(r'<parameterizedstring[^>]*type\s*=\s*["\']?Action["\']?[^>]*>(.*?)</parameterizedstring>', dotAll: true, caseSensitive: false);
-          final expectedResultRegex = RegExp(r'<parameterizedstring[^>]*type\s*=\s*["\']?ExpectedResult["\']?[^>]*>(.*?)</parameterizedstring>', dotAll: true, caseSensitive: false);
+          final actionRegex = RegExp('<parameterizedstring[^>]*type\\s*=\\s*["\']?Action["\']?[^>]*>(.*?)</parameterizedstring>', dotAll: true, caseSensitive: false);
+          final expectedResultRegex = RegExp('<parameterizedstring[^>]*type\\s*=\\s*["\']?ExpectedResult["\']?[^>]*>(.*?)</parameterizedstring>', dotAll: true, caseSensitive: false);
           
           final actionMatch = actionRegex.firstMatch(stepContent);
           final expectedResultMatch = expectedResultRegex.firstMatch(stepContent);
