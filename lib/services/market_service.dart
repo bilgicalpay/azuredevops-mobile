@@ -301,10 +301,10 @@ class MarketService {
               lastMatchIndex < hrefPathSegments.length - 1) {
             // Get segments after the last match
             final newSegments = hrefPathSegments.sublist(lastMatchIndex + 1);
-            relativePath = newSegments.join('/') + '/';
+            relativePath = '${newSegments.join('/')}/';
           } else if (hrefPathSegments.isNotEmpty) {
             // If no match, just use the last segment
-            relativePath = hrefPathSegments.last + '/';
+            relativePath = '${hrefPathSegments.last}/';
           }
         } else {
           // Relative path like "ABC/" or "./ABC/"

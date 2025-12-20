@@ -8,7 +8,6 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
-import 'package:dio/dio.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'work_item_service.dart';
 import 'notification_service.dart';
