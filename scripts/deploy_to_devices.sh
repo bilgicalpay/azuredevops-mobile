@@ -76,7 +76,7 @@ if [ -n "$ANDROID_DEVICE" ]; then
     APK_PATH="$PROJECT_DIR/build/app/outputs/flutter-apk/app-release.apk"
     
     if [ -f "$APK_PATH" ]; then
-        echo -e "${GREEN}📲 Installing APK to Android device ($ANDROID_DEVICE)...${NC}"
+        echo -e "${GREEN}📲 Installing/Updating APK to Android device ($ANDROID_DEVICE) (will update if app exists)...${NC}"
         $ADB_CMD -s "$ANDROID_DEVICE" install -r "$APK_PATH"
         echo -e "${GREEN}✅ Android deployment completed!${NC}"
     else

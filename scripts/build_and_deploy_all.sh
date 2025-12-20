@@ -36,7 +36,7 @@ DEVICE_COUNT=$($ADB_CMD devices | grep -c "device$" || true)
 if [ "$DEVICE_COUNT" -gt 0 ]; then
   APK_PATH="build/app/outputs/flutter-apk/app-release.apk"
   if [ -f "$APK_PATH" ]; then
-    echo "📲 Installing APK..."
+    echo "📲 Installing/Updating APK (will update if app exists)..."
     $ADB_CMD install -r "$APK_PATH"
     echo -e "${GREEN}✅ Android deployment completed!${NC}"
     

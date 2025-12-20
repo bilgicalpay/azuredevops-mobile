@@ -23,10 +23,13 @@ class StorageService extends ChangeNotifier {
       preferencesKeyPrefix: 'flutter_secure_storage_',
       // Android Auto Backup ile otomatik olarak yedeklenir
       // EncryptedSharedPreferences Android 6.0+ Auto Backup ile korunur
+      // NOT: Backup için kullanıcının Google hesabı giriş yapmış olmalı ve Auto Backup açık olmalı
     ),
     iOptions: IOSOptions(
       accessibility: KeychainAccessibility.first_unlock_this_device, // iOS Keychain kullan
       // iOS Keychain otomatik olarak iCloud Backup ile yedeklenir (ayarlar açıksa)
+      // NOT: Backup için kullanıcının iCloud Backup açık olmalı
+      synchronizable: true, // iCloud Keychain sync için
     ),
   );
   
