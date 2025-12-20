@@ -627,15 +627,17 @@ Bu uygulama açık kaynak kodlu olarak geliştirilmiştir ve özel bir lisans al
 
 ### Lisans Koşulları
 
-**Kullanım:**
+**İzin Verilenler:**
 - ✅ Yazılımı özgürce kullanabilirsiniz
 - ✅ Yazılımı değiştirebilir ve geliştirebilirsiniz
-- ✅ Yazılımı dağıtabilirsiniz (ticari olmayan amaçlarla)
+- ✅ Yazılımı ticari olmayan amaçlarla dağıtabilirsiniz
+- ✅ Eğitim ve kişisel kullanım için serbest
 
-**Kısıtlamalar:**
-- ❌ Yazılımı veya türev eserlerini ticari amaçlarla satamazsınız
-- ❌ Yazılımı veya türev eserlerini ticari ürünlere dahil edemezsiniz
-- ❌ Türev eserleri farklı bir lisans altında dağıtamazsınız
+**Kesinlikle Yasak Olanlar:**
+- ❌ **TİCARİ SATIŞ YASAKTIR**: Yazılımı veya türev eserlerini ticari amaçlarla satamazsınız
+- ❌ **TİCARİ DAĞITIM YASAKTIR**: Yazılımı veya türev eserlerini ticari ürünlere dahil edemezsiniz
+- ❌ **TİCARİ LİSANSLAMA YASAKTIR**: Türev eserleri sahipli veya ticari lisanslar altında lisanslayamazsınız
+- ❌ **YENİDEN SATIŞ YASAKTIR**: Herhangi bir ticari dağıtım, yeniden satış veya ticarileştirme biçimi yasaktır
 
 **Gereksinimler:**
 - 📝 Kullanımda orijinal telif hakkı bildirimini ve atıfı korumalısınız
@@ -643,10 +645,12 @@ Bu uygulama açık kaynak kodlu olarak geliştirilmiştir ve özel bir lisans al
 - 📝 Kaynak kodu kullanılabilir olmalıdır
 
 **Ticari Kullanım:**
-Ticari kullanım, lisanslama veya dağıtım için lütfen iletişime geçin:
+**ÖNEMLİ**: Ticari kullanım, satış, lisanslama veya dağıtım için **AÇIK YAZILI İZİN GEREKLİDİR**.
+
+Ticari kullanım için lütfen iletişime geçin:
 - E-posta: bilgicalpay@gmail.com
 
-Detaylı lisans metni için [LICENSE](LICENSE) dosyasına bakın.
+**Detaylı lisans metni (Türkçe ve İngilizce) için [LICENSE](LICENSE) dosyasına bakın.**
 
 ---
 
