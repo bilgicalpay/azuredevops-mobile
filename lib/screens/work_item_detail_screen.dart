@@ -51,7 +51,6 @@ class _WorkItemDetailScreenState extends State<WorkItemDetailScreen> {
   
   // Steps data structure
   List<Map<String, String>> _steps = []; // Each step: {'action': '', 'expectedResult': ''}
-  bool _isEditingSteps = false;
 
   @override
   void initState() {
@@ -1518,9 +1517,9 @@ class _WorkItemDetailScreenState extends State<WorkItemDetailScreen> {
     }
   }
   
-  /// Build Steps table widget
+  /// Build Steps table widget (Read-only)
   Widget _buildStepsTable() {
-    if (_steps.isEmpty && !_isEditingSteps) {
+    if (_steps.isEmpty) {
       return const Text(
         'No steps defined',
         style: TextStyle(
@@ -1530,129 +1529,7 @@ class _WorkItemDetailScreenState extends State<WorkItemDetailScreen> {
       );
     }
     
-    // If editing, show editable table
-    if (_isEditingSteps) {
-      return Column(
-        children: [
-          // Header row
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(4),
-                topRight: Radius.circular(4),
-              ),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  flex: 1,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Text(
-                      '#',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[800],
-                      ),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 3,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Text(
-                      'Action',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[800],
-                      ),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 3,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Text(
-                      'Expected Result',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[800],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 40), // Space for delete button
-              ],
-            ),
-          ),
-          // Data rows
-          ...List.generate(_steps.length, (index) {
-            return Container(
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: Colors.grey[300]!),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 1,
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Text('${index + 1}'),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 3,
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextField(
-                        controller: TextEditingController(text: _steps[index]['action']),
-                        maxLines: null,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          contentPadding: EdgeInsets.all(8.0),
-                        ),
-                        onChanged: (value) {
-                          _steps[index]['action'] = value;
-                        },
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 3,
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextField(
-                        controller: TextEditingController(text: _steps[index]['expectedResult']),
-                        maxLines: null,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          contentPadding: EdgeInsets.all(8.0),
-                        ),
-                        onChanged: (value) {
-                          _steps[index]['expectedResult'] = value;
-                        },
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () => _deleteStep(index),
-                    tooltip: 'Delete Step',
-                  ),
-                ],
-              ),
-            );
-          }),
-        ],
-      );
-    }
-    
-    // If not editing, show read-only table
+    // Show read-only table with HTML rendering
     return Column(
       children: [
         // Header row
