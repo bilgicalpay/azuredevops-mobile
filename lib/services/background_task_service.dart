@@ -218,6 +218,14 @@ class BackgroundTaskService {
           _workItemAssignees[workItem.id] = currentAssignee;
           _workItemChangedDates[workItem.id] = currentChangedDate;
           
+          // TATİL MODU KONTROLÜ - En önce kontrol et, eğer tatil modu aktifse hiçbir bildirim gönderme
+          final vacationModePhone = _storageService!.getVacationModePhone();
+          final vacationModeWatch = _storageService!.getVacationModeWatch();
+          if (vacationModePhone && vacationModeWatch) {
+            print('🏖️ [BackgroundTaskService] Skipping all notifications: Vacation mode enabled for both phone and watch');
+            continue;
+          }
+          
           // ÖNEMLİ: Eğer bu work item "ilk atamada bildirim" ile işaretlenmişse ve sadece "ilk atamada bildirim" aktifse,
           // bir daha asla bildirim gönderme
           if (await _isFirstAssignmentNotified(workItem.id)) {
@@ -242,7 +250,7 @@ class BackgroundTaskService {
             }
           }
           
-          // Bildirim ayarlarını kontrol et
+          // Bildirim ayarlarını kontrol et (tatil modu kontrolü _shouldNotifyForWorkItem içinde yapılıyor)
           final shouldNotify = await _shouldNotifyForWorkItem(workItem, isNew: true, wasAssigned: true);
           if (!shouldNotify) {
             print('🔕 [BackgroundTaskService] Notification skipped for work item #${workItem.id} based on settings');
@@ -399,6 +407,24 @@ class BackgroundTaskService {
           }
           
           if (shouldNotify) {
+            // TATİL MODU KONTROLÜ - En önce kontrol et, eğer tatil modu aktifse hiçbir bildirim gönderme
+            final vacationModePhone = _storageService!.getVacationModePhone();
+            final vacationModeWatch = _storageService!.getVacationModeWatch();
+            if (vacationModePhone && vacationModeWatch) {
+              print('🏖️ [BackgroundTaskService] Skipping all notifications: Vacation mode enabled for both phone and watch');
+              // Update tracking even if notification skipped
+              if (knownRev == null) {
+                _workItemRevisions[workItem.id] = currentRev;
+              }
+              if (knownAssignee == null) {
+                _workItemAssignees[workItem.id] = currentAssignee;
+              }
+              if (knownChangedDate == null && currentChangedDate != null) {
+                _workItemChangedDates[workItem.id] = currentChangedDate;
+              }
+              continue;
+            }
+            
             // ÖNEMLİ: Eğer bu work item "ilk atamada bildirim" ile işaretlenmişse ve sadece "ilk atamada bildirim" aktifse,
             // bir daha asla bildirim gönderme
             if (await _isFirstAssignmentNotified(workItem.id)) {
@@ -457,15 +483,64 @@ class BackgroundTaskService {
               continue;
             }
             
-            await _notificationService.showWorkItemNotification(
-              workItemId: workItem.id,
-              title: workItem.title,
-              body: notificationBody,
-            );
+            // Telefon ve saat için ayrı ayrı kontrol et (tatil modu kontrolü _shouldNotifyForWorkItem içinde yapılıyor)
+            final shouldNotifyPhone = await _shouldNotifyForWorkItem(workItem, isNew: false, wasAssigned: wasAssigned, forPhone: true, forWatch: false);
+            final shouldNotifyWatch = await _shouldNotifyForWorkItem(workItem, isNew: false, wasAssigned: wasAssigned, forPhone: false, forWatch: true);
             
-            await _saveLastNotifiedRevision(workItem.id, currentRev);
-            await _markAsNotified(workItem.id); // Kalıcı olarak kaydet
-            print('✅ [BackgroundTaskService] Notification sent for work item #${workItem.id}: $notificationBody');
+            if (shouldNotifyPhone) {
+              final isOnCallModePhone = _storageService!.getOnCallModePhone();
+              if (isOnCallModePhone) {
+                await _notificationService.showOnCallNotification(
+                  title: 'Work Item #${workItem.id}: ${workItem.title}',
+                  body: notificationBody,
+                  payload: workItem.id.toString(),
+                );
+              } else {
+                await _notificationService.showWorkItemNotification(
+                  workItemId: workItem.id,
+                  title: workItem.title,
+                  body: notificationBody,
+                  isFirstAssignment: false,
+                  isOnCallMode: false,
+                  availableStates: null,
+                  currentState: workItem.state,
+                  storageService: _storageService,
+                  workItemService: _workItemService,
+                );
+              }
+            }
+            
+            if (shouldNotifyWatch && _storageService!.getEnableSmartwatchNotifications()) {
+              final isOnCallModeWatch = _storageService!.getOnCallModeWatch();
+              if (isOnCallModeWatch) {
+                await _notificationService.showOnCallNotification(
+                  title: 'Work Item #${workItem.id}: ${workItem.title}',
+                  body: notificationBody,
+                  payload: workItem.id.toString(),
+                );
+              } else {
+                await _notificationService.showWorkItemNotification(
+                  workItemId: workItem.id,
+                  title: workItem.title,
+                  body: notificationBody,
+                  isFirstAssignment: false,
+                  isOnCallMode: false,
+                  availableStates: null,
+                  currentState: workItem.state,
+                  storageService: _storageService,
+                  workItemService: _workItemService,
+                );
+              }
+            }
+            
+            // Sadece bildirim gönderildiyse tracking güncelle
+            if (shouldNotifyPhone || shouldNotifyWatch) {
+              await _saveLastNotifiedRevision(workItem.id, currentRev);
+              await _markAsNotified(workItem.id); // Kalıcı olarak kaydet
+              print('✅ [BackgroundTaskService] Notification sent for work item #${workItem.id}: $notificationBody');
+            } else {
+              print('🔕 [BackgroundTaskService] No notification sent for work item #${workItem.id} (vacation mode or other settings)');
+            }
           }
           
           // Update tracking even if no notification sent

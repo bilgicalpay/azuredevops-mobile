@@ -491,6 +491,14 @@ class RealtimeService {
           _workItemAssignees[workItem.id] = currentAssignee;
           _workItemChangedDates[workItem.id] = currentChangedDate;
           
+          // TATİL MODU KONTROLÜ - En önce kontrol et, eğer tatil modu aktifse hiçbir bildirim gönderme
+          final vacationModePhone = _storageService!.getVacationModePhone();
+          final vacationModeWatch = _storageService!.getVacationModeWatch();
+          if (vacationModePhone && vacationModeWatch) {
+            print('🏖️ [RealtimeService] Skipping all notifications: Vacation mode enabled for both phone and watch');
+            continue;
+          }
+          
           // ÖNEMLİ: Eğer bu work item "ilk atamada bildirim" ile işaretlenmişse ve sadece "ilk atamada bildirim" aktifse,
           // bir daha asla bildirim gönderme
           if (await _isFirstAssignmentNotified(workItem.id)) {
@@ -515,7 +523,7 @@ class RealtimeService {
             }
           }
           
-          // Bildirim ayarlarını kontrol et
+          // Bildirim ayarlarını kontrol et (tatil modu kontrolü _shouldNotifyForWorkItem içinde yapılıyor)
           final shouldNotify = await _shouldNotifyForWorkItem(workItem, isNew: true, wasAssigned: true);
           if (!shouldNotify) {
             print('🔕 [RealtimeService] Notification skipped for work item #${workItem.id} based on settings');
@@ -680,6 +688,24 @@ class RealtimeService {
             changedIds.add(workItem.id);
             print('🔄 [RealtimeService] Work item #${workItem.id} changed, checking notification settings');
             
+            // TATİL MODU KONTROLÜ - En önce kontrol et, eğer tatil modu aktifse hiçbir bildirim gönderme
+            final vacationModePhone = _storageService!.getVacationModePhone();
+            final vacationModeWatch = _storageService!.getVacationModeWatch();
+            if (vacationModePhone && vacationModeWatch) {
+              print('🏖️ [RealtimeService] Skipping all notifications: Vacation mode enabled for both phone and watch');
+              // Update tracking even if notification skipped
+              if (knownRev == null) {
+                _workItemRevisions[workItem.id] = currentRev;
+              }
+              if (knownAssignee == null) {
+                _workItemAssignees[workItem.id] = currentAssignee;
+              }
+              if (knownChangedDate == null && currentChangedDate != null) {
+                _workItemChangedDates[workItem.id] = currentChangedDate;
+              }
+              continue;
+            }
+            
             // Bildirim ayarlarını kontrol et
             final wasAssigned = knownAssignee == null && currentAssignee != null;
             final notifyOnFirstAssignment = _storageService!.getNotifyOnFirstAssignment();
@@ -717,8 +743,10 @@ class RealtimeService {
             }
             
             // Send notification with appropriate message
+            // Telefon ve saat için ayrı ayrı kontrol et (tatil modu kontrolü _shouldNotifyForWorkItem içinde yapılıyor)
             final isOnCallModePhone = _storageService!.getOnCallModePhone();
             final shouldNotifyPhone = await _shouldNotifyForWorkItem(workItem, isNew: false, wasAssigned: wasAssigned, forPhone: true, forWatch: false);
+            final shouldNotifyWatch = await _shouldNotifyForWorkItem(workItem, isNew: false, wasAssigned: wasAssigned, forPhone: false, forWatch: true);
             
             if (shouldNotifyPhone) {
               if (isOnCallModePhone) {
@@ -745,9 +773,42 @@ class RealtimeService {
                 );
               }
             }
-            await _saveLastNotifiedRevision(workItem.id, currentRev);
-            await _markAsNotified(workItem.id); // Kalıcı olarak kaydet
-            print('✅ [RealtimeService] Notification sent for work item #${workItem.id}: $changeMessage');
+            
+            if (shouldNotifyWatch && _storageService!.getEnableSmartwatchNotifications()) {
+              final isOnCallModeWatch = _storageService!.getOnCallModeWatch();
+              if (isOnCallModeWatch) {
+                await _notificationService.showOnCallNotification(
+                  title: 'Work Item #${workItem.id}: ${workItem.title}',
+                  body: changeMessage.isNotEmpty 
+                      ? changeMessage 
+                      : 'Work item güncellendi: ${workItem.state}',
+                  payload: workItem.id.toString(),
+                );
+              } else {
+                await _notificationService.showWorkItemNotification(
+                  workItemId: workItem.id,
+                  title: workItem.title,
+                  body: changeMessage.isNotEmpty 
+                      ? changeMessage 
+                      : 'Work item güncellendi: ${workItem.state}',
+                  isFirstAssignment: false,
+                  isOnCallMode: false,
+                  availableStates: null,
+                  currentState: workItem.state,
+                  storageService: _storageService,
+                  workItemService: _workItemService,
+                );
+              }
+            }
+            
+            // Sadece bildirim gönderildiyse tracking güncelle
+            if (shouldNotifyPhone || shouldNotifyWatch) {
+              await _saveLastNotifiedRevision(workItem.id, currentRev);
+              await _markAsNotified(workItem.id); // Kalıcı olarak kaydet
+              print('✅ [RealtimeService] Notification sent for work item #${workItem.id}: $changeMessage');
+            } else {
+              print('🔕 [RealtimeService] No notification sent for work item #${workItem.id} (vacation mode or other settings)');
+            }
           }
           
           // Update tracking even if no change detected (to keep data fresh)

@@ -29,9 +29,12 @@ Bu uygulama, Azure DevOps Server 2022 on-premise kurulumları için mobil erişi
   - Tüm ayarlar background servislerde aktif olarak çalışır
 - ✅ **Akıllı Saat Bildirimleri:**
   - Android Wear OS ve iOS watchOS desteği
+  - Xiaomi, Huawei, Samsung, Apple Watch desteği
+  - Saat uygulamasında özel uygulama seçimi ile bildirim iletimi (Mi Fit, Xiaomi Wear, Samsung Galaxy Watch, Apple Watch)
   - Sadece ilk atamada akıllı saat bildirimi (titreşim, ses, ekran)
   - Etkileşimli butonlar ile state değiştirme (dropdown menü)
   - Dinamik state listesi (work item'ın mevcut state'leri)
+  - Bildirimden "Telefonda Aç" ile work item detay sayfasına yönlendirme
 - ✅ **Nöbetçi Modu:**
   - Telefon ve akıllı saat için ayrı ayrı aktif edilebilir
   - Agresif bildirimler (maksimum öncelik, daha fazla titreşim, daha yüksek ses)
@@ -253,9 +256,13 @@ Detaylar için [docs/MDM_INTEGRATION.md](docs/MDM_INTEGRATION.md) dosyasına bak
    - Sadece Hotfix filtresi
    - Grup bildirimleri (grup adları ekleyin)
 3. **Akıllı Saat Bildirimleri:**
-   - Akıllı saat bildirimlerini aktif edin
+   - **Önce saat uygulamanızda Azure DevOps uygulamasını etkinleştirin:**
+     - **Android saatler (Xiaomi, Huawei, Samsung):** Mi Fit / Xiaomi Wear / Samsung Galaxy Watch uygulamasında **Bildirimler** → **Özel Uygulama Seçimi** → **Azure DevOps** aktif edin
+     - **Apple Watch:** iPhone Watch uygulamasında **Bildirimler** → **Azure DevOps** aktif edin
+   - **Uygulama içinde:** Ayarlar → Bildirim Ayarları → **Akıllı Saat Bildirimleri** toggle switch'ini aktif edin
    - Sadece ilk atamada akıllı saat bildirimi gönderilir
    - Etkileşimli butonlar ile state değiştirme yapılabilir
+   - Bildirimden "Telefonda Aç" seçeneği ile work item detay sayfasını açabilirsiniz
 4. **Nöbetçi Modu:**
    - Telefon için nöbetçi modu: Agresif bildirimler, okunmayan bildirimler 3 kez yenilenir
    - Akıllı saat için nöbetçi modu: Agresif bildirimler
@@ -390,13 +397,51 @@ Market özelliği, IIS static dizininden APK ve IPA dosyalarını indirmenizi sa
      - Grup adı silmek için **X** butonuna tıklayın
 
 **Akıllı Saat Bildirimleri:**
-- **Akıllı Saat Bildirimleri** toggle switch'ini aktif edin
-- Bu özellik aktifken:
-  - Sadece ilk atamada akıllı saatte bildirim gelir
-  - Bildirimde titreşim, ses ve ekran bildirimi olur
-  - Etkileşimli butonlar ile work item state'i değiştirilebilir
-  - State listesi dinamik olarak work item'ın mevcut state'lerinden oluşur
-  - Dropdown menü ile state seçimi yapılabilir
+
+Akıllı saatlerinizde Azure DevOps bildirimlerini almak için önce saat uygulamanızda Azure DevOps uygulamasını etkinleştirmeniz gerekir.
+
+**Android Saatler (Xiaomi, Huawei, Samsung, vb.):**
+
+1. **Mi Fit / Xiaomi Wear / Samsung Galaxy Watch uygulamasını açın**
+2. **Profil** veya **Ayarlar** bölümüne gidin
+3. **Bildirimler** veya **Uygulama Bildirimleri** seçeneğini bulun
+4. **Özel Uygulama Seçimi** veya **Uygulama Bildirimleri** bölümüne gidin
+5. **Azure DevOps** uygulamasını bulun ve aktif edin
+6. Bildirim ayarlarını kontrol edin:
+   - **Bildirimleri Göster**: Açık
+   - **Titreşim**: Açık (isteğe bağlı)
+   - **Ses**: Açık (isteğe bağlı)
+
+**Apple Watch (watchOS):**
+
+1. iPhone'unuzda **Watch** uygulamasını açın
+2. **Bildirimler** sekmesine gidin
+3. **Azure DevOps** uygulamasını bulun
+4. Bildirim stilini seçin:
+   - **Bildirimleri Göster**: Açık
+   - **Bildirimlerde Ses Çal**: Açık (isteğe bağlı)
+   - **Titreşim**: Açık (isteğe bağlı)
+
+**Uygulama İçi Ayarlar:**
+
+1. **Ayarlar** → **Bildirim Ayarları** bölümüne gidin
+2. **Akıllı Saat Bildirimleri** toggle switch'ini aktif edin
+3. Bu özellik aktifken:
+   - Sadece ilk atamada akıllı saatte bildirim gelir
+   - Bildirimde titreşim, ses ve ekran bildirimi olur
+   - Etkileşimli butonlar ile work item state'i değiştirilebilir
+   - State listesi dinamik olarak work item'ın mevcut state'lerinden oluşur
+   - Dropdown menü ile state seçimi yapılabilir
+
+**Bildirimden Work Item Açma:**
+
+Akıllı saatte bildirim geldiğinde:
+1. Bildirime dokunun veya kaydırın
+2. **"Telefonda Aç"** veya **"Open on Phone"** seçeneğini seçin
+3. Telefondaki Azure DevOps uygulaması otomatik olarak açılır
+4. İlgili work item detay sayfası gösterilir
+
+**Not:** Bu özellik için telefon ve akıllı saatin eşleşmiş olması ve Bluetooth bağlantısının aktif olması gerekir.
 
 **Nöbetçi Modu:**
 - **Nöbetçi Modu** bölümünde telefon ve akıllı saat için ayrı ayrı ayarlar bulunur
@@ -578,7 +623,30 @@ Detaylı release notları için [RELEASE_NOTES.md](RELEASE_NOTES.md) dosyasına 
 
 ## 📄 Lisans
 
-Bu uygulama kurumsal kullanım için geliştirilmiştir.
+Bu uygulama açık kaynak kodlu olarak geliştirilmiştir ve özel bir lisans altında dağıtılmaktadır.
+
+### Lisans Koşulları
+
+**Kullanım:**
+- ✅ Yazılımı özgürce kullanabilirsiniz
+- ✅ Yazılımı değiştirebilir ve geliştirebilirsiniz
+- ✅ Yazılımı dağıtabilirsiniz (ticari olmayan amaçlarla)
+
+**Kısıtlamalar:**
+- ❌ Yazılımı veya türev eserlerini ticari amaçlarla satamazsınız
+- ❌ Yazılımı veya türev eserlerini ticari ürünlere dahil edemezsiniz
+- ❌ Türev eserleri farklı bir lisans altında dağıtamazsınız
+
+**Gereksinimler:**
+- 📝 Kullanımda orijinal telif hakkı bildirimini ve atıfı korumalısınız
+- 📝 Türev eserler aynı lisans koşulları altında dağıtılmalıdır
+- 📝 Kaynak kodu kullanılabilir olmalıdır
+
+**Ticari Kullanım:**
+Ticari kullanım, lisanslama veya dağıtım için lütfen iletişime geçin:
+- E-posta: bilgicalpay@gmail.com
+
+Detaylı lisans metni için [LICENSE](LICENSE) dosyasına bakın.
 
 ---
 
