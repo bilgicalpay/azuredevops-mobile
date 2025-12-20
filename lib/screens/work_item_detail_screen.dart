@@ -1383,7 +1383,8 @@ class _WorkItemDetailScreenState extends State<WorkItemDetailScreen> {
       return;
     }
     
-    debugPrint('🔍 [Steps] Raw Steps content: ${stepsHtml.substring(0, stepsHtml.length > 200 ? 200 : stepsHtml.length)}...');
+    debugPrint('🔍 [Steps] Raw Steps content (first 500 chars): ${stepsHtml.substring(0, stepsHtml.length > 500 ? 500 : stepsHtml.length)}');
+    debugPrint('🔍 [Steps] Raw Steps content (last 500 chars): ${stepsHtml.length > 500 ? stepsHtml.substring(stepsHtml.length - 500) : stepsHtml}');
     
     // Try to detect format: XML (<steps>, <step>) or HTML (<div>)
     final isXmlFormat = stepsHtml.trim().startsWith('<steps') || stepsHtml.contains('<step ');
