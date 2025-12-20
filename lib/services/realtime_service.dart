@@ -635,6 +635,25 @@ class RealtimeService {
             
             // Bildirim ayarlarını kontrol et
             final wasAssigned = knownAssignee == null && currentAssignee != null;
+            final notifyOnFirstAssignment = _storageService!.getNotifyOnFirstAssignment();
+            final notifyOnAllUpdates = _storageService!.getNotifyOnAllUpdates();
+            
+            // ÇİFT KONTROL: Eğer sadece "ilk atamada bildirim" aktifse, güncellemelerde bildirim gönderme
+            if (notifyOnFirstAssignment && !notifyOnAllUpdates) {
+              print('🔒 [RealtimeService] Work item #${workItem.id} - First assignment only mode active, blocking update notification');
+              // Update tracking even if notification skipped
+              if (knownRev == null) {
+                _workItemRevisions[workItem.id] = currentRev;
+              }
+              if (knownAssignee == null) {
+                _workItemAssignees[workItem.id] = currentAssignee;
+              }
+              if (knownChangedDate == null && currentChangedDate != null) {
+                _workItemChangedDates[workItem.id] = currentChangedDate;
+              }
+              continue;
+            }
+            
             if (!await _shouldNotifyForWorkItem(workItem, isNew: false, wasAssigned: wasAssigned)) {
               print('🔕 [RealtimeService] Notification skipped for work item #${workItem.id} based on settings');
               // Update tracking even if notification skipped
