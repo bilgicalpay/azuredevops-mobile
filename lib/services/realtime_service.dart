@@ -491,6 +491,18 @@ class RealtimeService {
           _workItemAssignees[workItem.id] = currentAssignee;
           _workItemChangedDates[workItem.id] = currentChangedDate;
           
+          // ÖNEMLİ: Eğer bu work item "ilk atamada bildirim" ile işaretlenmişse ve sadece "ilk atamada bildirim" aktifse,
+          // bir daha asla bildirim gönderme
+          if (await _isFirstAssignmentNotified(workItem.id)) {
+            final notifyOnFirstAssignment = _storageService!.getNotifyOnFirstAssignment();
+            final notifyOnAllUpdates = _storageService!.getNotifyOnAllUpdates();
+            
+            if (notifyOnFirstAssignment && !notifyOnAllUpdates) {
+              print('🔒 [RealtimeService] Work item #${workItem.id} was first-assignment-notified, skipping all future notifications');
+              continue;
+            }
+          }
+          
           // ÖNEMLİ: Bu work item için daha önce bildirim gönderilmiş mi kontrol et
           // Uygulama yeniden kurulsa bile bu bilgi kalıcı olarak saklanır
           if (_wasNotified(workItem.id)) {
