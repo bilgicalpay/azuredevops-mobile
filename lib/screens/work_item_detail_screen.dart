@@ -178,6 +178,13 @@ class _WorkItemDetailScreenState extends State<WorkItemDetailScreen> {
           // Skip System fields (they're handled separately)
           if (entry.key.startsWith('System.')) continue;
           
+          // Skip Steps field - it's handled separately in Steps section
+          if (entry.key == 'Microsoft.VSTS.TCM.Steps' || 
+              entry.key == 'System.Steps' || 
+              entry.key == 'Steps') {
+            continue;
+          }
+          
           // If field is not in field definitions, add it (might be a custom field)
           if (!allNonHiddenFields.containsKey(entry.key)) {
             // Try to infer type from value
