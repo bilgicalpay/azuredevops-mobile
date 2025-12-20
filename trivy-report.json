@@ -1,15 +1,15 @@
 {
   "SchemaVersion": 2,
-  "ReportID": "019b3d88-3c2d-7505-9ac7-89007669d032",
-  "CreatedAt": "2025-12-20T23:51:37.13333+03:00",
-  "ArtifactID": "sha256:77485fa86f133433218bdc8b321bd92f0fdc94631487b5b4ba4d3f2fa88770bb",
+  "ReportID": "019b3dd4-fe87-7d98-9edc-c96402643cf2",
+  "CreatedAt": "2025-12-21T01:15:27.623892+03:00",
+  "ArtifactID": "sha256:e01b89a85efd2da92d2952cc546eae94cdb4a9580d02b14bcb95d1aa77dda351",
   "ArtifactName": ".",
   "ArtifactType": "repository",
   "Metadata": {
     "RepoURL": "https://github.com/bilgicalpay/azuredevops-server-mobile.git",
-    "Branch": "release/v1.1.4",
-    "Commit": "ffe6b48fca0d01aa9aac3c23f7e2b34beeedf85b",
-    "CommitMsg": "docs: Update documentation for v1.1.4+43\n\n- Add Turkish culture popup feature to README, CHANGELOG, and RELEASE_NOTES\n- Add Work Item Attachments feature documentation\n- Document Steps section removal\n- Update version to 1.1.4+43\n- Add dependency updates documentation",
+    "Branch": "develop",
+    "Commit": "2743cffea7d7a428e672293fc5c96bd353113b11",
+    "CommitMsg": "chore: Bump version to 1.2.0+45 for testing\n\n- Minor version bump (1.1.4 -\u003e 1.2.0)\n- Build number increment (44 -\u003e 45)\n- Ready for iOS and Android testing",
     "Author": "Alpay Bilgiç \u003cbilgicalpay@gmail.com\u003e",
     "Committer": "Alpay Bilgiç \u003cbilgicalpay@gmail.com\u003e"
   },

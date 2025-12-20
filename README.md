@@ -366,18 +366,66 @@ Market özelliği, IIS static dizininden APK ve IPA dosyalarını indirmenizi sa
 ### Bildirim Yönetimi
 
 #### Bildirim Ayarları
-1. **Ayarlar** → **Bildirim Ayarları**
+
+**Ayarlar Ekranı Görünümü:**
+- Ayarlar ekranında **Bildirim Ayarları** bölümü bulunur
+- **Kontrol Sıklığı** ayarı ile polling interval'i ayarlayabilirsiniz (5-300 saniye arası)
+- Hızlı (10s), Normal (15s), Yavaş (30s) gibi önceden tanımlı seçenekler mevcuttur
+
+**Bildirim Türleri:**
+1. **Ayarlar** → **Bildirim Ayarları** bölümüne gidin
 2. İstediğiniz bildirim seçeneklerini aktif edin:
    - **İlk Atamada Bildirim:** Sadece size ilk atandığında bildirim alın
+     - Toggle switch'i aktif edin
+     - Bu seçenek aktifken, sadece ilk atamada bildirim gelir, sonraki güncellemelerde gelmez
    - **Tüm Güncellemelerde Bildirim:** Atanmış work item'lar güncellendiğinde bildirim alın
+     - Toggle switch'i aktif edin
+     - Bu seçenek aktifken, tüm güncellemelerde bildirim gelir
    - **Sadece Hotfix:** Yalnızca Hotfix tipindeki work item'lar için bildirim alın
+     - Toggle switch'i aktif edin
+     - Bu seçenek aktifken, sadece Hotfix tipindeki work item'lar için bildirim gelir
    - **Grup Bildirimleri:** Belirtilen gruplara atama yapıldığında bildirim alın
+     - Toggle switch'i aktif edin
      - Grup adı eklemek için **+** butonuna tıklayın
      - Grup adı silmek için **X** butonuna tıklayın
+
+**Akıllı Saat Bildirimleri:**
+- **Akıllı Saat Bildirimleri** toggle switch'ini aktif edin
+- Bu özellik aktifken:
+  - Sadece ilk atamada akıllı saatte bildirim gelir
+  - Bildirimde titreşim, ses ve ekran bildirimi olur
+  - Etkileşimli butonlar ile work item state'i değiştirilebilir
+  - State listesi dinamik olarak work item'ın mevcut state'lerinden oluşur
+  - Dropdown menü ile state seçimi yapılabilir
+
+**Nöbetçi Modu:**
+- **Nöbetçi Modu** bölümünde telefon ve akıllı saat için ayrı ayrı ayarlar bulunur
+- **Telefon için Nöbetçi Modu:**
+  - Toggle switch'i aktif edin
+  - Bildirimler daha agresif olur (maksimum öncelik, daha fazla titreşim, daha yüksek ses)
+  - Okunmayan bildirimler 30 saniye aralıklarla 3 kez otomatik yenilenir
+- **Akıllı Saat için Nöbetçi Modu:**
+  - Toggle switch'i aktif edin
+  - Akıllı saatte bildirimler daha agresif olur
+
+**Tatil Modu:**
+- **Tatil Modu** bölümünde telefon ve akıllı saat için ayrı ayrı ayarlar bulunur
+- **Telefon için Tatil Modu:**
+  - Toggle switch'i aktif edin
+  - Bu mod aktifken telefonda hiçbir bildirim gelmez
+- **Akıllı Saat için Tatil Modu:**
+  - Toggle switch'i aktif edin
+  - Bu mod aktifken akıllı saatte hiçbir bildirim gelmez
+
+**Ayarlar Ekranı Özellikleri:**
+- Tüm ayarlar gerçek zamanlı olarak kaydedilir
+- Ayarlar cihazda kalıcı olarak saklanır
+- Uygulama yeniden başlatıldığında ayarlar korunur
 
 #### Bildirim Geçmişi
 - Bildirim gönderilmiş work item'lar için tekrar bildirim gönderilmez
 - Uygulama yeniden kurulduğunda bile bildirim geçmişi korunur
+- İlk atamada bildirim gönderilmiş work item'lar için sonraki güncellemelerde bildirim gelmez (eğer sadece "ilk atamada bildirim" seçeneği aktifse)
 
 ## 🔒 Güvenlik
 
@@ -536,4 +584,4 @@ Bu uygulama kurumsal kullanım için geliştirilmiştir.
 
 **Geliştirici:** Alpay Bilgiç  
 **Son Güncelleme:** 2024-12-20  
-**Versiyon:** 1.1.4+43
+**Versiyon:** 1.2.0+46
