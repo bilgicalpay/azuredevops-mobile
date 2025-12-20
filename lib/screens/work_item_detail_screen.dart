@@ -1529,6 +1529,19 @@ class _WorkItemDetailScreenState extends State<WorkItemDetailScreen> {
       }
       
       debugPrint('✅ [Steps] Parsed ${_steps.length} steps');
+      for (int i = 0; i < _steps.length; i++) {
+        final action = _steps[i]['action'] ?? '';
+        final expectedResult = _steps[i]['expectedResult'] ?? '';
+        final actionPreview = action.length > 100 ? '${action.substring(0, 100)}...' : action;
+        final expectedResultPreview = expectedResult.length > 100 ? '${expectedResult.substring(0, 100)}...' : expectedResult;
+        debugPrint('  Step ${i + 1}: Action length=${action.length}, ExpectedResult length=${expectedResult.length}');
+        if (action.isNotEmpty) {
+          debugPrint('    Action: "$actionPreview"');
+        }
+        if (expectedResult.isNotEmpty) {
+          debugPrint('    ExpectedResult: "$expectedResultPreview"');
+        }
+      }
     } catch (e) {
       debugPrint('❌ [Steps] Error parsing Steps: $e');
       // If parsing fails, show as single text field with HTML
