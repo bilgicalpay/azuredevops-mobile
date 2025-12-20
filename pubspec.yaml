@@ -41,7 +41,7 @@ dependencies:
   # HTTP ve ağ işlemleri
   http: ^1.1.0
   dio: ^5.4.0
-  web_socket_channel: ^2.4.3
+  web_socket_channel: ^3.0.3
   
   # Yerel depolama ve state yönetimi
   shared_preferences: ^2.2.2
@@ -56,7 +56,7 @@ dependencies:
   
   # URL açma ve paket bilgileri
   url_launcher: ^6.2.2
-  package_info_plus: ^5.0.1
+  package_info_plus: ^8.0.0
   
   # Bildirimler
   flutter_local_notifications: ^17.0.0
@@ -75,7 +75,7 @@ dependencies:
   root_detector: ^0.0.2  # Root/jailbreak detection için alternatif paket
   
   # File picker for attachments
-  file_picker: ^6.1.1
+  file_picker: ^8.1.2
 
 dev_dependencies:
   flutter_test:
