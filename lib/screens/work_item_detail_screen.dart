@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:dio/dio.dart';
+import 'package:intl/intl.dart';
 import '../services/auth_service.dart';
 import '../services/storage_service.dart';
 import '../services/work_item_service.dart';
@@ -195,25 +196,40 @@ class _WorkItemDetailScreenState extends State<WorkItemDetailScreen> {
         }
       }
       
-      // Now initialize controllers for all non-hidden fields
+      // Now initialize controllers for all non-hidden fields based on their types
       for (var entry in allNonHiddenFields.entries) {
         final fieldKey = entry.key;
         final fieldDef = entry.value;
         final fieldValue = detailedItem.allFields?[fieldKey];
         final currentValue = fieldValue?.toString() ?? '';
-        final fieldType = fieldDef.type;
+        final fieldType = fieldDef.type.toLowerCase();
         
-        // Check if it's a boolean field (tickbox)
-        if (fieldValue is bool || fieldType == 'boolean') {
-          // Boolean field - store as string for now, will handle in UI
+        // Check field type and initialize appropriate controller
+        if (fieldType == 'boolean') {
+          // Boolean field - store as string for checkbox
           _comboBoxValues[fieldKey] = (fieldValue as bool? ?? false).toString();
         }
-        // Check if field has allowed values (combo box/selectbox)
-        else if (fieldDef.isComboBox && fieldDef.allowedValues.isNotEmpty) {
-          // Combo box/selectbox field
+        // Check if it's a date field
+        else if (fieldType == 'date' || fieldType == 'datetime') {
+          // Date field - store as string, will use date picker in UI
           _comboBoxValues[fieldKey] = currentValue.isEmpty ? null : currentValue;
-        } else if (fieldValue is String || fieldValue is num || fieldValue == null) {
-          // Regular text/number field (or empty field)
+        }
+        // Check if field has allowed values (combo box/selectbox/picklist)
+        else if (fieldDef.allowedValues.isNotEmpty || 
+                 fieldType.contains('picklist') ||
+                 fieldDef.isComboBox) {
+          // Combo box/selectbox/picklist field
+          _comboBoxValues[fieldKey] = currentValue.isEmpty ? null : currentValue;
+        } 
+        // Check if it's a textarea/html field
+        else if (fieldType == 'html' || fieldType == 'plainttext' || fieldType == 'text') {
+          // TextArea field - use multiline text field
+          _fieldControllers[fieldKey] = TextEditingController(
+            text: currentValue,
+          );
+        }
+        // Regular text/number field
+        else if (fieldValue is String || fieldValue is num || fieldValue == null) {
           _fieldControllers[fieldKey] = TextEditingController(
             text: currentValue,
           );
@@ -503,14 +519,14 @@ class _WorkItemDetailScreenState extends State<WorkItemDetailScreen> {
       }
     }
 
-    // Update combo box fields and boolean fields
+    // Update combo box fields, boolean fields, and date fields
     for (var entry in _comboBoxValues.entries) {
       final fieldDef = _fieldDefinitions[entry.key];
-      final fieldType = fieldDef?.type ?? '';
+      final fieldType = (fieldDef?.type ?? '').toLowerCase();
       final currentValue = _detailedWorkItem!.allFields?[entry.key];
       
       // Handle boolean fields
-      if (fieldType == 'boolean' || entry.value == 'true' || entry.value == 'false') {
+      if (fieldType == 'boolean') {
         final boolValue = entry.value == 'true';
         final currentBoolValue = currentValue is bool ? currentValue : (currentValue?.toString() == 'true');
         if (boolValue != currentBoolValue) {
@@ -519,8 +535,19 @@ class _WorkItemDetailScreenState extends State<WorkItemDetailScreen> {
             'value': boolValue,
           });
         }
-      } else {
-        // Handle string/selectbox/combobox fields
+      } 
+      // Handle date fields
+      else if (fieldType == 'date' || fieldType == 'datetime') {
+        final currentStringValue = currentValue?.toString();
+        if (entry.value != currentStringValue && entry.value != null && entry.value!.isNotEmpty) {
+          updates.add({
+            'path': '/fields/${entry.key}',
+            'value': entry.value!,
+          });
+        }
+      } 
+      // Handle string/selectbox/combobox/picklist fields
+      else {
         final currentStringValue = currentValue?.toString();
         if (entry.value != currentStringValue && entry.value != null) {
           updates.add({
@@ -817,14 +844,14 @@ class _WorkItemDetailScreenState extends State<WorkItemDetailScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 16),
-                                // Combo box/selectbox fields and boolean/tickbox fields
+                                // Combo box/selectbox fields, boolean/tickbox fields, and date fields
                                 ..._comboBoxValues.entries.map((entry) {
                                   final fieldDef = _fieldDefinitions[entry.key];
                                   final allowedValues = fieldDef?.allowedValues ?? [];
-                                  final fieldType = fieldDef?.type ?? '';
+                                  final fieldType = (fieldDef?.type ?? '').toLowerCase();
                                   
                                   // Check if it's a boolean field (tickbox)
-                                  if (fieldType == 'boolean' || entry.value == 'true' || entry.value == 'false') {
+                                  if (fieldType == 'boolean') {
                                     final boolValue = entry.value == 'true';
                                     return CheckboxListTile(
                                       title: Text(fieldDef?.name ?? entry.key),
@@ -837,58 +864,115 @@ class _WorkItemDetailScreenState extends State<WorkItemDetailScreen> {
                                     );
                                   }
                                   
-                                  if (allowedValues.isEmpty) {
-                                    // Fallback to text field if no allowed values
+                                  // Check if it's a date field
+                                  if (fieldType == 'date' || fieldType == 'datetime') {
+                                    DateTime? selectedDate;
+                                    if (entry.value != null && entry.value!.isNotEmpty) {
+                                      selectedDate = DateTime.tryParse(entry.value!);
+                                    }
+                                    
                                     return Padding(
                                       padding: const EdgeInsets.only(bottom: 16.0),
-                                      child: TextFormField(
-                                        initialValue: entry.value ?? '',
+                                      child: InkWell(
+                                        onTap: () async {
+                                          final picked = await showDatePicker(
+                                            context: context,
+                                            initialDate: selectedDate ?? DateTime.now(),
+                                            firstDate: DateTime(1900),
+                                            lastDate: DateTime(2100),
+                                          );
+                                          if (picked != null) {
+                                            setState(() {
+                                              // Format date as ISO 8601 string (Azure DevOps format)
+                                              _comboBoxValues[entry.key] = picked.toIso8601String();
+                                            });
+                                          }
+                                        },
+                                        child: InputDecorator(
+                                          decoration: InputDecoration(
+                                            labelText: fieldDef?.name ?? entry.key,
+                                            border: const OutlineInputBorder(),
+                                            suffixIcon: const Icon(Icons.calendar_today),
+                                          ),
+                                          child: Text(
+                                            selectedDate != null
+                                                ? DateFormat('MM/dd/yyyy hh:mm a').format(selectedDate)
+                                                : 'Select date',
+                                            style: TextStyle(
+                                              color: selectedDate != null ? null : Colors.grey,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                  
+                                  // Check if it's a picklist/combobox with allowed values
+                                  if (allowedValues.isNotEmpty || 
+                                      fieldType.contains('picklist') ||
+                                      (fieldDef?.isComboBox ?? false)) {
+                                    // Dropdown for selectbox/combobox/picklist
+                                    return Padding(
+                                      padding: const EdgeInsets.only(bottom: 16.0),
+                                      child: DropdownButtonFormField<String>(
+                                        value: entry.value,
                                         decoration: InputDecoration(
                                           labelText: fieldDef?.name ?? entry.key,
                                           border: const OutlineInputBorder(),
                                         ),
+                                        items: allowedValues.map((value) {
+                                          return DropdownMenuItem(
+                                            value: value,
+                                            child: Text(value),
+                                          );
+                                        }).toList(),
                                         onChanged: (value) {
                                           setState(() {
-                                            _comboBoxValues[entry.key] = value.isEmpty ? null : value;
+                                            _comboBoxValues[entry.key] = value;
                                           });
                                         },
                                       ),
                                     );
                                   }
                                   
-                                  // Dropdown for selectbox/combobox
+                                  // Fallback to text field if no allowed values and not date/boolean
                                   return Padding(
                                     padding: const EdgeInsets.only(bottom: 16.0),
-                                    child: DropdownButtonFormField<String>(
-                                      value: entry.value,
+                                    child: TextFormField(
+                                      initialValue: entry.value ?? '',
                                       decoration: InputDecoration(
                                         labelText: fieldDef?.name ?? entry.key,
                                         border: const OutlineInputBorder(),
                                       ),
-                                      items: allowedValues.map((value) {
-                                        return DropdownMenuItem(
-                                          value: value,
-                                          child: Text(value),
-                                        );
-                                      }).toList(),
                                       onChanged: (value) {
                                         setState(() {
-                                          _comboBoxValues[entry.key] = value;
+                                          _comboBoxValues[entry.key] = value.isEmpty ? null : value;
                                         });
                                       },
                                     ),
                                   );
                                 }),
-                                // Text fields
+                                // Text fields (including textarea/html fields)
                                 ..._fieldControllers.entries.map((entry) {
                                   final fieldDef = _fieldDefinitions[entry.key];
+                                  final fieldType = (fieldDef?.type ?? '').toLowerCase();
+                                  
+                                  // Check if it's a textarea/html field
+                                  final isTextArea = fieldType == 'html' || 
+                                                    fieldType == 'plainttext' || 
+                                                    fieldType == 'text' ||
+                                                    fieldDef?.name.toLowerCase().contains('multiple') == true ||
+                                                    entry.key.toLowerCase().contains('multiple') == true;
+                                  
                                   return Padding(
                                     padding: const EdgeInsets.only(bottom: 16.0),
                                     child: TextFormField(
                                       controller: entry.value,
+                                      maxLines: isTextArea ? 5 : 1,
                                       decoration: InputDecoration(
                                         labelText: fieldDef?.name ?? entry.key,
                                         border: const OutlineInputBorder(),
+                                        alignLabelWithHint: isTextArea,
                                       ),
                                     ),
                                   );
