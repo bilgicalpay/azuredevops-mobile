@@ -130,6 +130,7 @@ class _WorkItemDetailScreenState extends State<WorkItemDetailScreen> {
       // If we have relations, process them directly (no extra API call)
       if (relations != null && relations.isNotEmpty) {
         _loadRelatedWorkItemsFromRelations(relations);
+        _loadAttachmentsFromRelations(relations);
       }
 
       // Load available states
