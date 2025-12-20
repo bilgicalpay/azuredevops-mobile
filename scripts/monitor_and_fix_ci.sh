@@ -149,13 +149,41 @@ monitor_build() {
 # Check if GitHub CLI is installed and authenticated
 if ! command -v gh &> /dev/null; then
     echo -e "${RED}❌ GitHub CLI (gh) is not installed${NC}"
+    echo -e "${YELLOW}Install it with: brew install gh${NC}"
+    echo -e "${YELLOW}Or visit: https://cli.github.com/${NC}"
+    echo ""
+    echo -e "${YELLOW}Alternative: Check workflow status manually at:${NC}"
+    echo -e "${YELLOW}https://github.com/$REPO/actions${NC}"
     exit 1
 fi
 
 if ! gh auth status &> /dev/null; then
     echo -e "${RED}❌ GitHub CLI is not authenticated${NC}"
-    echo -e "${YELLOW}Run: gh auth login${NC}"
-    exit 1
+    echo ""
+    echo -e "${YELLOW}To authenticate, run:${NC}"
+    echo -e "${YELLOW}  gh auth login${NC}"
+    echo ""
+    echo -e "${YELLOW}Then select:${NC}"
+    echo -e "${YELLOW}  1. GitHub.com${NC}"
+    echo -e "${YELLOW}  2. HTTPS${NC}"
+    echo -e "${YELLOW}  3. Login with a web browser${NC}"
+    echo ""
+    echo -e "${YELLOW}Or check workflow status manually at:${NC}"
+    echo -e "${YELLOW}https://github.com/$REPO/actions${NC}"
+    echo ""
+    read -p "Do you want to authenticate now? (y/n): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        gh auth login
+        if gh auth status &> /dev/null; then
+            echo -e "${GREEN}✅ Authentication successful!${NC}"
+        else
+            echo -e "${RED}❌ Authentication failed${NC}"
+            exit 1
+        fi
+    else
+        exit 1
+    fi
 fi
 
 # Start monitoring
