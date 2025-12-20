@@ -208,35 +208,88 @@ class AuthService extends ChangeNotifier {
           debugPrint('🔐 [AD Login] Response status: ${response.statusCode} for URL: $testUrl');
 
           if (response.statusCode == 200) {
-        // Store username and password separately in secure storage (encrypted)
-        // Base64 encoding is only done at runtime for API calls, not for storage
-        await _storage?.setServerUrl(cleanUrl);
-        await _storage?.setUsername(username);
-        await _storage?.setAdPassword(password);
-        await _storage?.setAuthType('ad');
-        if (collection != null && collection.isNotEmpty) {
-          await _storage?.setCollection(collection);
+            // Store username and password separately in secure storage (encrypted)
+            // Base64 encoding is only done at runtime for API calls, not for storage
+            await _storage?.setServerUrl(cleanUrl);
+            await _storage?.setUsername(normalizedUsername);
+            await _storage?.setAdPassword(password);
+            await _storage?.setAuthType('ad');
+            if (collection != null && collection.isNotEmpty) {
+              await _storage?.setCollection(collection);
+            }
+            
+            // For AD auth, we don't store a token - we store username and password separately
+            // Token will be generated at runtime from stored credentials
+            _isAuthenticated = true;
+            _serverUrl = cleanUrl;
+            _username = normalizedUsername;
+            _token = null; // AD auth doesn't use a stored token
+            _authType = 'ad';
+            
+            SecurityService.logAuthentication('AD login successful', details: {'serverUrl': cleanUrl, 'username': normalizedUsername});
+            SecurityService.logTokenOperation('AD credentials stored securely', success: true);
+            
+            debugPrint('✅ [AD Login] Login successful with username: $normalizedUsername');
+            
+            notifyListeners();
+            return true;
+          } else if (response.statusCode == 401) {
+            // Unauthorized - wrong credentials
+            debugPrint('❌ [AD Login] Unauthorized (401) - Check username and password');
+            debugPrint('❌ [AD Login] Username format: $normalizedUsername');
+            debugPrint('❌ [AD Login] Response: ${response.data}');
+            lastError = DioException(
+              requestOptions: RequestOptions(path: testUrl),
+              response: response,
+              type: DioExceptionType.badResponse,
+            );
+            continue; // Try next URL
+          } else {
+            debugPrint('⚠️ [AD Login] Unexpected status code: ${response.statusCode}');
+            lastError = DioException(
+              requestOptions: RequestOptions(path: testUrl),
+              response: response,
+              type: DioExceptionType.badResponse,
+            );
+            continue; // Try next URL
+          }
+        } catch (e) {
+          debugPrint('⚠️ [AD Login] Error trying URL $testUrl: $e');
+          if (e is DioException) {
+            lastError = e;
+            if (e.response?.statusCode == 401) {
+              // Unauthorized - don't try other URLs
+              break;
+            }
+          }
+          continue; // Try next URL
         }
-        
-        // For AD auth, we don't store a token - we store username and password separately
-        // Token will be generated at runtime from stored credentials
-        _isAuthenticated = true;
-        _serverUrl = cleanUrl;
-        _username = username;
-        _token = null; // AD auth doesn't use a stored token
-        _authType = 'ad';
-        
-        SecurityService.logAuthentication('AD login successful', details: {'serverUrl': cleanUrl, 'username': username});
-        SecurityService.logTokenOperation('AD credentials stored securely', success: true);
-        
-        notifyListeners();
-        return true;
       }
       
-      SecurityService.logAuthentication('AD login failed', details: {'statusCode': response.statusCode});
+      // If we get here, all URLs failed
+      if (lastError != null) {
+        final statusCode = lastError.response?.statusCode;
+        final errorMessage = lastError.response?.data?.toString() ?? lastError.message ?? 'Unknown error';
+        
+        debugPrint('❌ [AD Login] All login attempts failed');
+        debugPrint('❌ [AD Login] Last status code: $statusCode');
+        debugPrint('❌ [AD Login] Last error: $errorMessage');
+        
+        SecurityService.logAuthentication('AD login failed', details: {
+          'statusCode': statusCode,
+          'error': errorMessage,
+          'username': normalizedUsername,
+        });
+      } else {
+        SecurityService.logAuthentication('AD login failed', details: {
+          'error': 'All authentication attempts failed',
+          'username': normalizedUsername,
+        });
+      }
+      
       return false;
     } catch (e) {
-      debugPrint('AD login error: $e');
+      debugPrint('❌ [AD Login] Unexpected error: $e');
       SecurityService.logAuthentication('AD login error', details: {'error': e.toString()});
       return false;
     }
