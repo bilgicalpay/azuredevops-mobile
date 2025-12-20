@@ -1399,12 +1399,16 @@ class _WorkItemDetailScreenState extends State<WorkItemDetailScreen> {
         final stepRegex = RegExp(r'<step[^>]*>(.*?)</step>', dotAll: true);
         final stepMatches = stepRegex.allMatches(stepsHtml);
         
+        debugPrint('🔍 [Steps] Found ${stepMatches.length} step elements');
+        
         for (var stepMatch in stepMatches) {
           final stepContent = stepMatch.group(1) ?? '';
+          debugPrint('🔍 [Steps] Step content length: ${stepContent.length}');
           
           // Try to find parameterizedstring tags within the step
-          final actionRegex = RegExp(r'<parameterizedstring[^>]*type="Action"[^>]*>(.*?)</parameterizedstring>', dotAll: true);
-          final expectedResultRegex = RegExp(r'<parameterizedstring[^>]*type="ExpectedResult"[^>]*>(.*?)</parameterizedstring>', dotAll: true);
+          // Match both with and without quotes around type attribute
+          final actionRegex = RegExp(r'<parameterizedstring[^>]*type\s*=\s*["\']?Action["\']?[^>]*>(.*?)</parameterizedstring>', dotAll: true, caseSensitive: false);
+          final expectedResultRegex = RegExp(r'<parameterizedstring[^>]*type\s*=\s*["\']?ExpectedResult["\']?[^>]*>(.*?)</parameterizedstring>', dotAll: true, caseSensitive: false);
           
           final actionMatch = actionRegex.firstMatch(stepContent);
           final expectedResultMatch = expectedResultRegex.firstMatch(stepContent);
@@ -1412,8 +1416,12 @@ class _WorkItemDetailScreenState extends State<WorkItemDetailScreen> {
           String? action = actionMatch?.group(1)?.trim();
           String? expectedResult = expectedResultMatch?.group(1)?.trim();
           
+          debugPrint('🔍 [Steps] Action found: ${action != null}, length: ${action?.length ?? 0}');
+          debugPrint('🔍 [Steps] ExpectedResult found: ${expectedResult != null}, length: ${expectedResult?.length ?? 0}');
+          
           // If no parameterizedstring found, try to parse by step type attribute
           if (action == null && expectedResult == null) {
+            debugPrint('⚠️ [Steps] No parameterizedstring found, trying step type attribute');
             final stepTypeRegex = RegExp(r'<step[^>]*type="([^"]*)"[^>]*>(.*?)</step>', dotAll: true);
             final typeMatches = stepTypeRegex.allMatches(stepsHtml);
             
@@ -1449,9 +1457,30 @@ class _WorkItemDetailScreenState extends State<WorkItemDetailScreen> {
             }
           } else {
             // We found parameterizedstring, add the step
+            // Decode HTML entities if needed
+            String decodedAction = action ?? '';
+            String decodedExpectedResult = expectedResult ?? '';
+            
+            // Decode common HTML entities
+            decodedAction = decodedAction
+                .replaceAll('&lt;', '<')
+                .replaceAll('&gt;', '>')
+                .replaceAll('&amp;', '&')
+                .replaceAll('&quot;', '"')
+                .replaceAll('&apos;', "'");
+            
+            decodedExpectedResult = decodedExpectedResult
+                .replaceAll('&lt;', '<')
+                .replaceAll('&gt;', '>')
+                .replaceAll('&amp;', '&')
+                .replaceAll('&quot;', '"')
+                .replaceAll('&apos;', "'");
+            
+            debugPrint('✅ [Steps] Adding step: Action="${decodedAction.substring(0, decodedAction.length > 50 ? 50 : decodedAction.length)}...", ExpectedResult="${decodedExpectedResult.substring(0, decodedExpectedResult.length > 50 ? 50 : decodedExpectedResult.length)}..."');
+            
             _steps.add({
-              'action': action ?? '',
-              'expectedResult': expectedResult ?? '',
+              'action': decodedAction,
+              'expectedResult': decodedExpectedResult,
             });
           }
         }
