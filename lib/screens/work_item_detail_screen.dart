@@ -1840,17 +1840,28 @@ class _WorkItemDetailScreenState extends State<WorkItemDetailScreen> {
       final action = step['action'] ?? '';
       final expectedResult = step['expectedResult'] ?? '';
       
-      // Escape HTML entities
-      final escapedAction = action
-          .replaceAll('&', '&amp;')
-          .replaceAll('<', '&lt;')
-          .replaceAll('>', '&gt;');
-      final escapedExpected = expectedResult
-          .replaceAll('&', '&amp;')
-          .replaceAll('<', '&lt;')
-          .replaceAll('>', '&gt;');
+      // If action/expectedResult already contains HTML tags, use as-is
+      // Otherwise, escape HTML entities
+      String processedAction = action;
+      String processedExpected = expectedResult;
       
-      buffer.write('<div><div>$escapedAction</div><div>$escapedExpected</div></div>');
+      // Check if content already has HTML tags
+      final hasHtmlTags = RegExp(r'<[^>]+>').hasMatch(action) || RegExp(r'<[^>]+>').hasMatch(expectedResult);
+      
+      if (!hasHtmlTags) {
+        // No HTML tags, escape entities
+        processedAction = action
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;');
+        processedExpected = expectedResult
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;');
+      }
+      // If has HTML tags, use as-is (already HTML formatted)
+      
+      buffer.write('<div><div>$processedAction</div><div>$processedExpected</div></div>');
     }
     
     buffer.write('</div>');
