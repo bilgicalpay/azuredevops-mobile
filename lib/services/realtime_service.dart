@@ -549,11 +549,12 @@ class RealtimeService {
         } else {
           // ÖNEMLİ: ÖNCE kontrol et - eğer bu work item "ilk atamada bildirim" ile işaretlenmişse ve sadece "ilk atamada bildirim" aktifse,
           // bir daha asla bildirim gönderme (değişiklik olsa bile)
-          if (await _isFirstAssignmentNotified(workItem.id)) {
-            final notifyOnFirstAssignment = _storageService!.getNotifyOnFirstAssignment();
-            final notifyOnAllUpdates = _storageService!.getNotifyOnAllUpdates();
-            
-            if (notifyOnFirstAssignment && !notifyOnAllUpdates) {
+          // Bu kontrolü değişiklik tespitinden ÖNCE yapıyoruz
+          final notifyOnFirstAssignment = _storageService!.getNotifyOnFirstAssignment();
+          final notifyOnAllUpdates = _storageService!.getNotifyOnAllUpdates();
+          
+          if (notifyOnFirstAssignment && !notifyOnAllUpdates) {
+            if (await _isFirstAssignmentNotified(workItem.id)) {
               print('🔒 [RealtimeService] Work item #${workItem.id} was first-assignment-notified, skipping all future notifications (including updates)');
               // Update tracking even if notification skipped
               if (knownRev == null) {
@@ -825,11 +826,18 @@ class RealtimeService {
       
       // Eğer sadece "ilk atamada bildirim" aktifse ve bu bir güncelleme ise, bildirim gönderme
       if (notifyOnFirstAssignment && !notifyOnAllUpdates && !isNew) {
-        print('🔕 [RealtimeService] Skipping notification: First assignment only mode, this is an update');
+        print('🔕 [RealtimeService] Skipping notification: First assignment only mode, this is an update (isNew=$isNew, wasAssigned=$wasAssigned)');
+        return false;
+      }
+      
+      // Eğer hiçbir koşul eşleşmediyse ve sadece "ilk atamada bildirim" aktifse, bildirim gönderme
+      if (notifyOnFirstAssignment && !notifyOnAllUpdates) {
+        print('🔕 [RealtimeService] Skipping notification: First assignment only mode, no matching condition (isNew=$isNew, wasAssigned=$wasAssigned)');
         return false;
       }
       
       // Default: bildirim gönder (sadece yukarıdaki kontrollerden geçtiyse)
+      // NOT: Bu sadece notifyOnAllUpdates aktifse veya notifyOnFirstAssignment aktif değilse çalışır
       return true;
     } catch (e) {
       print('⚠️ [RealtimeService] Error checking notification settings: $e');
