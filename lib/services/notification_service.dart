@@ -157,6 +157,9 @@ class NotificationService {
         presentAlert: true,
         presentBadge: true,
         presentSound: true,
+        // watchOS (Apple Watch) desteği
+        // Bildirimler otomatik olarak eşleşen Apple Watch cihazlara gönderilir
+        // watchOS'ta bildirimler görüntülenir ve etkileşimli olabilir
       );
 
       const details = NotificationDetails(
