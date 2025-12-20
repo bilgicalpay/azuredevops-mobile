@@ -8,8 +8,10 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../services/storage_service.dart';
 import '../services/auth_service.dart';
+import 'dart:ui' show Locale;
 
 /// Ayarlar ekranı widget'ı
 /// Uygulama ayarlarını yönetir
@@ -200,10 +202,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context);
+    final storage = Provider.of<StorageService>(context);
+    final l10n = AppLocalizations.of(context)!;
+    final selectedLanguage = storage.getSelectedLanguage();
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Ayarlar'),
+        title: Text(l10n.settings),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -541,10 +546,87 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             const SizedBox(height: 16),
+            // Language Selection
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.language,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      l10n.languageDescription,
+                      style: const TextStyle(fontSize: 14, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      value: selectedLanguage == 'system' ? null : selectedLanguage,
+                      decoration: InputDecoration(
+                        labelText: l10n.selectLanguage,
+                        border: const OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.language),
+                      ),
+                      items: [
+                        DropdownMenuItem<String>(
+                          value: null,
+                          child: Text('${l10n.language} (${Localizations.localeOf(context).languageCode})'),
+                        ),
+                        const DropdownMenuItem<String>(
+                          value: 'tr',
+                          child: Text('Türkçe'),
+                        ),
+                        const DropdownMenuItem<String>(
+                          value: 'en',
+                          child: Text('English'),
+                        ),
+                        const DropdownMenuItem<String>(
+                          value: 'ru',
+                          child: Text('Русский'),
+                        ),
+                        const DropdownMenuItem<String>(
+                          value: 'hi',
+                          child: Text('हिन्दी'),
+                        ),
+                        const DropdownMenuItem<String>(
+                          value: 'nl',
+                          child: Text('Nederlands'),
+                        ),
+                        const DropdownMenuItem<String>(
+                          value: 'de',
+                          child: Text('Deutsch'),
+                        ),
+                        const DropdownMenuItem<String>(
+                          value: 'fr',
+                          child: Text('Français'),
+                        ),
+                        const DropdownMenuItem<String>(
+                          value: 'ur',
+                          child: Text('اردو'),
+                        ),
+                      ],
+                      onChanged: (value) async {
+                        await storage.setSelectedLanguage(value ?? 'system');
+                        // Restart app to apply language change
+                        // Note: In production, you might want to use a state management solution
+                        // that can update the locale without restarting
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
             Card(
               child: ListTile(
                 leading: const Icon(Icons.info_outline),
-                title: const Text('Server URL'),
+                title: Text(l10n.serverUrl),
                 subtitle: Text(authService.serverUrl ?? 'N/A'),
               ),
             ),
@@ -552,7 +634,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Card(
               child: ListTile(
                 leading: const Icon(Icons.folder),
-                title: const Text('Collection'),
+                title: Text(l10n.collection),
                 subtitle: Text(
                   Provider.of<StorageService>(context).getCollection() ?? 'N/A',
                 ),

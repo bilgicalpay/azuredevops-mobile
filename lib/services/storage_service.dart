@@ -477,5 +477,17 @@ class StorageService extends ChangeNotifier {
     final counts = await getUnreadNotificationRetryCounts();
     return counts[workItemId] ?? 0;
   }
+
+  // ==================== DİL AYARLARI ====================
+  
+  /// Seçili dil kodu (varsayılan: cihaz dili veya 'tr')
+  String getSelectedLanguage() {
+    return _prefs?.getString('selected_language') ?? 'system';
+  }
+  
+  Future<void> setSelectedLanguage(String languageCode) async {
+    await _prefs?.setString('selected_language', languageCode);
+    notifyListeners();
+  }
 }
 
