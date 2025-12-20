@@ -1,7 +1,7 @@
 # Azure DevOps Server 2022 Mobile App
 
 **Geliştirici:** Alpay Bilgiç  
-**Versiyon:** 1.1.4+43  
+**Versiyon:** 1.1.4+44  
 **Tarih:** 2024-12-20
 
 ## 📱 Genel Bakış
@@ -27,6 +27,18 @@ Bu uygulama, Azure DevOps Server 2022 on-premise kurulumları için mobil erişi
   - Sadece Hotfix filtresi (yalnızca Hotfix tipindeki work item'lar için)
   - Grup bildirimleri (belirtilen gruplara atama yapıldığında)
   - Tüm ayarlar background servislerde aktif olarak çalışır
+- ✅ **Akıllı Saat Bildirimleri:**
+  - Android Wear OS ve iOS watchOS desteği
+  - Sadece ilk atamada akıllı saat bildirimi (titreşim, ses, ekran)
+  - Etkileşimli butonlar ile state değiştirme (dropdown menü)
+  - Dinamik state listesi (work item'ın mevcut state'leri)
+- ✅ **Nöbetçi Modu:**
+  - Telefon ve akıllı saat için ayrı ayrı aktif edilebilir
+  - Agresif bildirimler (maksimum öncelik, daha fazla titreşim, daha yüksek ses)
+  - Okunmayan bildirimler 3 kez otomatik yenilenir (30 saniye aralıklarla)
+- ✅ **Tatil Modu:**
+  - Telefon ve akıllı saat için ayrı ayrı aktif edilebilir
+  - Tatil modunda hiçbir bildirim gelmez
 - ✅ Gerçek zamanlı güncellemeler (WebSocket)
 - ✅ Background task ile periyodik kontrol
 
@@ -240,7 +252,17 @@ Detaylar için [docs/MDM_INTEGRATION.md](docs/MDM_INTEGRATION.md) dosyasına bak
    - Tüm güncellemelerde bildirim
    - Sadece Hotfix filtresi
    - Grup bildirimleri (grup adları ekleyin)
-3. Ayarları kaydedin
+3. **Akıllı Saat Bildirimleri:**
+   - Akıllı saat bildirimlerini aktif edin
+   - Sadece ilk atamada akıllı saat bildirimi gönderilir
+   - Etkileşimli butonlar ile state değiştirme yapılabilir
+4. **Nöbetçi Modu:**
+   - Telefon için nöbetçi modu: Agresif bildirimler, okunmayan bildirimler 3 kez yenilenir
+   - Akıllı saat için nöbetçi modu: Agresif bildirimler
+5. **Tatil Modu:**
+   - Telefon için tatil modu: Hiçbir bildirim gelmez
+   - Akıllı saat için tatil modu: Hiçbir bildirim gelmez
+6. Ayarları kaydedin
 
 ### Market Özelliği
 
@@ -362,7 +384,7 @@ Market özelliği, IIS static dizininden APK ve IPA dosyalarını indirmenizi sa
 ### Güvenlik Özellikleri
 
 - ✅ **Token Şifreleme:** `flutter_secure_storage` kullanılıyor (Production'da aktif)
-  - Android: EncryptedSharedPreferences
+- Android: EncryptedSharedPreferences
   - iOS: Keychain Services
   - AES-256 şifreleme
 
@@ -465,7 +487,7 @@ lib/
 │   ├── security_service.dart
 │   └── certificate_pinning_service.dart
 └── assets/                      # Assets
-    └── images/
+└── images/
         └── logo.png
 
 docs/                            # Dokümantasyon

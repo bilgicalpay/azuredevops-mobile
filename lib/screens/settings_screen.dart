@@ -32,6 +32,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _notifyOnHotfixOnly = false;
   bool _notifyOnGroupAssignments = false;
   List<String> _notificationGroups = [];
+  bool _enableSmartwatchNotifications = false;
+  bool _onCallModePhone = false;
+  bool _onCallModeWatch = false;
+  bool _vacationModePhone = false;
+  bool _vacationModeWatch = false;
 
   @override
   void initState() {
@@ -66,6 +71,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final notifyOnGroupAssignments = storage.getNotifyOnGroupAssignments();
     final notificationGroups = await storage.getNotificationGroups();
     
+    // Load smartwatch and mode settings
+    final enableSmartwatchNotifications = storage.getEnableSmartwatchNotifications();
+    final onCallModePhone = storage.getOnCallModePhone();
+    final onCallModeWatch = storage.getOnCallModeWatch();
+    final vacationModePhone = storage.getVacationModePhone();
+    final vacationModeWatch = storage.getVacationModeWatch();
+    
     setState(() {
       _pollingInterval = interval;
       _pollingIntervalController.text = interval.toString();
@@ -74,6 +86,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _notifyOnHotfixOnly = notifyOnHotfixOnly;
       _notifyOnGroupAssignments = notifyOnGroupAssignments;
       _notificationGroups = notificationGroups;
+      _enableSmartwatchNotifications = enableSmartwatchNotifications;
+      _onCallModePhone = onCallModePhone;
+      _onCallModeWatch = onCallModeWatch;
+      _vacationModePhone = vacationModePhone;
+      _vacationModeWatch = vacationModeWatch;
     });
   }
 
@@ -144,6 +161,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await storage.setNotifyOnHotfixOnly(_notifyOnHotfixOnly);
     await storage.setNotifyOnGroupAssignments(_notifyOnGroupAssignments);
     await storage.setNotificationGroups(_notificationGroups);
+    
+    // Akıllı saat ve mod ayarlarını kaydet
+    await storage.setEnableSmartwatchNotifications(_enableSmartwatchNotifications);
+    await storage.setOnCallModePhone(_onCallModePhone);
+    await storage.setOnCallModeWatch(_onCallModeWatch);
+    await storage.setVacationModePhone(_vacationModePhone);
+    await storage.setVacationModeWatch(_vacationModeWatch);
     
     setState(() => _isLoading = false);
     
@@ -430,6 +454,88 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           style: TextStyle(fontSize: 12, color: Colors.grey, fontStyle: FontStyle.italic),
                         ),
                     ],
+                    
+                    const Divider(height: 32),
+                    
+                    // Akıllı Saat Bildirimleri
+                    SwitchListTile(
+                      title: const Text('Akıllı Saat Bildirimleri'),
+                      subtitle: const Text('Akıllı saatlere bildirim gönder (sadece ilk atamada)'),
+                      value: _enableSmartwatchNotifications,
+                      onChanged: (value) {
+                        setState(() => _enableSmartwatchNotifications = value);
+                      },
+                      contentPadding: EdgeInsets.zero,
+                      secondary: const Icon(Icons.watch),
+                    ),
+                    
+                    const Divider(height: 32),
+                    
+                    // Nöbetçi Modu
+                    const Text(
+                      'Nöbetçi Modu',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Nöbetçi modunda bildirimler daha agresif olur ve okunmayan bildirimler 3 kez yenilenir.',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 8),
+                    SwitchListTile(
+                      title: const Text('Telefon için Nöbetçi Modu'),
+                      subtitle: const Text('Telefonda agresif bildirimler'),
+                      value: _onCallModePhone,
+                      onChanged: (value) {
+                        setState(() => _onCallModePhone = value);
+                      },
+                      contentPadding: EdgeInsets.zero,
+                      secondary: const Icon(Icons.phone),
+                    ),
+                    SwitchListTile(
+                      title: const Text('Akıllı Saat için Nöbetçi Modu'),
+                      subtitle: const Text('Akıllı saatte agresif bildirimler'),
+                      value: _onCallModeWatch,
+                      onChanged: (value) {
+                        setState(() => _onCallModeWatch = value);
+                      },
+                      contentPadding: EdgeInsets.zero,
+                      secondary: const Icon(Icons.watch),
+                    ),
+                    
+                    const Divider(height: 32),
+                    
+                    // Tatil Modu
+                    const Text(
+                      'Tatil Modu',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Tatil modunda hiçbir bildirim gelmez.',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 8),
+                    SwitchListTile(
+                      title: const Text('Telefon için Tatil Modu'),
+                      subtitle: const Text('Telefonda bildirimleri devre dışı bırak'),
+                      value: _vacationModePhone,
+                      onChanged: (value) {
+                        setState(() => _vacationModePhone = value);
+                      },
+                      contentPadding: EdgeInsets.zero,
+                      secondary: const Icon(Icons.beach_access),
+                    ),
+                    SwitchListTile(
+                      title: const Text('Akıllı Saat için Tatil Modu'),
+                      subtitle: const Text('Akıllı saatte bildirimleri devre dışı bırak'),
+                      value: _vacationModeWatch,
+                      onChanged: (value) {
+                        setState(() => _vacationModeWatch = value);
+                      },
+                      contentPadding: EdgeInsets.zero,
+                      secondary: const Icon(Icons.watch_off),
+                    ),
                   ],
                 ),
               ),
