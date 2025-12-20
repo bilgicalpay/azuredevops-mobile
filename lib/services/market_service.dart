@@ -13,11 +13,9 @@ import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform;
 import 'package:flutter/material.dart' show TargetPlatform;
 import 'package:logging/logging.dart';
 import 'package:html/parser.dart' as html_parser;
-import 'package:html/dom.dart' as html_dom;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
-import 'package:permission_handler/permission_handler.dart';
 import 'auth_service.dart';
 import 'certificate_pinning_service.dart';
 
