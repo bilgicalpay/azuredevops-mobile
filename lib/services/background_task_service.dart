@@ -730,6 +730,9 @@ class BackgroundTaskService {
       final notifyOnGroupAssignments = _storageService!.getNotifyOnGroupAssignments();
       final notificationGroups = await _storageService!.getNotificationGroups();
       
+      // DEBUG: Log all notification settings
+      print('🔍 [BackgroundTaskService] Notification settings: notifyOnFirstAssignment=$notifyOnFirstAssignment, notifyOnAllUpdates=$notifyOnAllUpdates, notifyOnHotfixOnly=$notifyOnHotfixOnly, notifyOnGroupAssignments=$notifyOnGroupAssignments, groups=${notificationGroups.length}');
+      
       // ÖNEMLİ: Eğer hiçbir bildirim ayarı aktif değilse, bildirim gönderme
       if (!notifyOnFirstAssignment && !notifyOnAllUpdates && !notifyOnHotfixOnly && !notifyOnGroupAssignments) {
         print('🔕 [BackgroundTaskService] Skipping notification: No notification settings enabled (all disabled)');
