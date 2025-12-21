@@ -6,6 +6,17 @@ Bu proje [Semantic Versioning](https://semver.org/) kullanmaktadır.
 
 ### 🆕 Yeni Özellikler
 
+#### UI İyileştirmeleri
+- ✅ Versiyon bilgisi Azure DevOps logosunun altına geri eklendi
+- ✅ Azure DevOps logosuna tıklanınca GitHub repository adresi açılıyor
+- ✅ Logo ve yazı tıklanabilir hale getirildi (GestureDetector)
+
+#### Tatil Modu İyileştirmeleri
+- ✅ Tatil modu polling interval kontrolü eklendi
+- ✅ BackgroundTaskService'te tatil modu kontrolü polling başında yapılıyor
+- ✅ RealtimeService'te tatil modu kontrolü polling başında yapılıyor
+- ✅ Hem telefon hem saat için tatil modu aktifse hiçbir work item kontrolü yapılmıyor
+
 #### Türkiye Gezi Rehberi İyileştirmeleri
 - ✅ Türkiye gezi rehberi artık iframe olarak gösteriliyor (webview_flutter)
 - ✅ https://www.bizevdeyokuz.com/en/category/europe/turkey/ adresi iframe olarak entegre edildi

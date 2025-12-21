@@ -2,7 +2,7 @@
 
 **Uygulama:** Azure DevOps Server 2022 Mobile App  
 **Geliştirici:** Alpay Bilgiç  
-**Versiyon:** 1.2.0+46  
+**Versiyon:** 1.2.0+76  
 **Tarih:** 21-12-2025
 
 ## Genel Bakış
@@ -254,7 +254,7 @@ graph TB
 
 #### Screens
 - **LoginScreen**: Kullanıcı kimlik doğrulama
-- **HomeScreen**: Ana dashboard, work items listesi, wiki özeti, Türk kültürü popup
+- **HomeScreen**: Ana dashboard, work items listesi, wiki özeti, Türk kültürü popup, versiyon bilgisi, GitHub linki
 - **WorkItemDetailScreen**: Work item detayları, custom fields, attachments, comments
 - **WorkItemListScreen**: Work items listesi ve filtreleme
 - **QueriesScreen**: Query çalıştırma ve sonuç görüntüleme
@@ -262,6 +262,7 @@ graph TB
 - **SettingsScreen**: Uygulama ayarları, bildirim ayarları
 - **MarketScreen**: APK/IPA dosyalarını indirme
 - **DocumentsScreen**: Dokümantasyon görüntüleme
+- **TurkeyGuideScreen**: Türkiye gezi rehberi (iframe/WebView)
 
 ### Business Logic Layer
 
@@ -307,15 +308,17 @@ graph TB
 - Bildirim gönderme
 - Bildirim filtreleme mantığı
 - Nöbetçi modu kontrolü
-- Tatil modu kontrolü
+- Tatil modu kontrolü (polling başında kontrol edilir)
 - Okunmayan bildirimleri 3 kez yenileme (nöbetçi modunda)
+- Polling interval kontrolü ile tatil modu (hem telefon hem saat için aktifse hiçbir work item kontrolü yapılmaz)
 
 **RealtimeService**
 - WebSocket bağlantısı
 - Gerçek zamanlı güncellemeler
 - Bildirim gönderme
 - Nöbetçi modu kontrolü
-- Tatil modu kontrolü
+- Tatil modu kontrolü (polling başında kontrol edilir)
+- Polling interval kontrolü ile tatil modu (hem telefon hem saat için aktifse hiçbir work item kontrolü yapılmaz)
 
 **MarketService**
 - IIS static dizin listeleme

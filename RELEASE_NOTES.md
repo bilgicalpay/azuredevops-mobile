@@ -1,4 +1,4 @@
-# Release Notes - v1.2.0 (Build 72)
+# Release Notes - v1.2.0 (Build 76)
 
 **Release Date:** 21-12-2025  
 **Package Name:** io.rdc.azuredevops  
@@ -15,6 +15,17 @@
 - ✅ **iOS:** Ready for deployment
 
 ## ✨ New Features & Improvements
+
+### UI İyileştirmeleri 🆕
+- **Versiyon Bilgisi:** Versiyon bilgisi Azure DevOps logosunun altına geri eklendi
+- **GitHub Linki:** Azure DevOps logosuna tıklanınca GitHub repository adresi açılıyor
+- **Tıklanabilir Logo:** Logo ve "AzureDevOps" yazısı tıklanabilir hale getirildi
+
+### Tatil Modu İyileştirmeleri 🆕
+- **Polling Kontrolü:** Tatil modu polling interval kontrolü eklendi
+- **BackgroundTaskService:** Tatil modu kontrolü polling başında yapılıyor
+- **RealtimeService:** Tatil modu kontrolü polling başında yapılıyor
+- **Work Item Kontrolü:** Hem telefon hem saat için tatil modu aktifse hiçbir work item kontrolü yapılmıyor
 
 ### Türkiye Gezi Rehberi İyileştirmeleri 🆕
 - **Iframe Entegrasyonu:** Türkiye gezi rehberi artık iframe olarak gösteriliyor
