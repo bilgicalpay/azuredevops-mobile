@@ -1,7 +1,7 @@
 # Azure DevOps Server 2022 Mobile App
 
 **Geliştirici:** Alpay Bilgiç  
-**Versiyon:** 1.2.0+72  
+**Versiyon:** 1.2.0+76  
 **Tarih:** 21-12-2025
 
 ## 📱 Genel Bakış
@@ -43,6 +43,7 @@ Bu uygulama, Azure DevOps Server 2022 on-premise kurulumları için mobil erişi
 - ✅ **Tatil Modu:**
   - Telefon ve akıllı saat için ayrı ayrı aktif edilebilir
   - Tatil modunda hiçbir bildirim gelmez
+  - Polling interval kontrolü ile çalışır (hem telefon hem saat için aktifse hiçbir work item kontrolü yapılmaz)
 - ✅ Gerçek zamanlı güncellemeler (WebSocket)
 - ✅ Background task ile periyodik kontrol
 
@@ -73,6 +74,11 @@ Bu uygulama, Azure DevOps Server 2022 on-premise kurulumları için mobil erişi
   - https://www.bizevdeyokuz.com/en/category/europe/turkey/ adresi iframe olarak gösteriliyor
   - WebView ile tam ekran gezi rehberi deneyimi
   - JavaScript desteği aktif
+
+### UI İyileştirmeleri
+- ✅ Versiyon bilgisi Azure DevOps logosunun altında gösteriliyor
+- ✅ Azure DevOps logosuna tıklanınca GitHub repository adresi açılıyor
+- ✅ Logo ve yazı tıklanabilir hale getirildi
 
 ### Güvenlik
 - ✅ Certificate Pinning (SHA-256)

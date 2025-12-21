@@ -378,6 +378,16 @@ class RealtimeService {
         return;
       }
       
+      // TATİL MODU KONTROLÜ - Eğer hem telefon hem saat için tatil modu aktifse, hiçbir kontrol yapma
+      if (_storageService != null) {
+        final vacationModePhone = _storageService!.getVacationModePhone();
+        final vacationModeWatch = _storageService!.getVacationModeWatch();
+        if (vacationModePhone && vacationModeWatch) {
+          print('🏖️ [RealtimeService] Skipping polling check: Vacation mode enabled for both phone and watch');
+          return;
+        }
+      }
+      
       try {
         print('🔄 [RealtimeService] Polling check started at ${DateTime.now()}...');
         final hasChanges = await _checkForNewWorkItems(authService, storageService);
@@ -395,10 +405,21 @@ class RealtimeService {
     
     print('✅ [RealtimeService] Background polling started successfully ($pollingInterval second intervals)');
     
-    // Do an immediate check after starting
+    // Do an immediate check after starting (tatil modu kontrolü ile)
     print('🔄 [RealtimeService] Performing immediate check...');
     try {
-      await _checkForNewWorkItems(authService, storageService);
+      // TATİL MODU KONTROLÜ - Eğer hem telefon hem saat için tatil modu aktifse, hiçbir kontrol yapma
+      if (_storageService != null) {
+        final vacationModePhone = _storageService!.getVacationModePhone();
+        final vacationModeWatch = _storageService!.getVacationModeWatch();
+        if (vacationModePhone && vacationModeWatch) {
+          print('🏖️ [RealtimeService] Skipping immediate check: Vacation mode enabled for both phone and watch');
+        } else {
+          await _checkForNewWorkItems(authService, storageService);
+        }
+      } else {
+        await _checkForNewWorkItems(authService, storageService);
+      }
     } catch (e) {
       print('❌ [RealtimeService] Immediate check error: $e');
     }
@@ -456,6 +477,16 @@ class RealtimeService {
     StorageService storageService,
   ) async {
     try {
+      // TATİL MODU KONTROLÜ - Eğer hem telefon hem saat için tatil modu aktifse, hiçbir kontrol yapma
+      if (_storageService != null) {
+        final vacationModePhone = _storageService!.getVacationModePhone();
+        final vacationModeWatch = _storageService!.getVacationModeWatch();
+        if (vacationModePhone && vacationModeWatch) {
+          print('🏖️ [RealtimeService] Skipping work item check: Vacation mode enabled for both phone and watch');
+          return false;
+        }
+      }
+      
       final token = await authService.getAuthToken();
       if (authService.serverUrl == null || token == null) {
         print('⚠️ [RealtimeService] Cannot check: missing auth');
