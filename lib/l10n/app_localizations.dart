@@ -5,13 +5,17 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
+import 'app_localizations_az.dart';
 import 'app_localizations_de.dart';
 import 'app_localizations_en.dart';
 import 'app_localizations_fr.dart';
 import 'app_localizations_hi.dart';
+import 'app_localizations_ja.dart';
+import 'app_localizations_ky.dart';
 import 'app_localizations_nl.dart';
 import 'app_localizations_ru.dart';
 import 'app_localizations_tr.dart';
+import 'app_localizations_ug.dart';
 import 'app_localizations_ur.dart';
 
 // ignore_for_file: type=lint
@@ -100,13 +104,17 @@ abstract class AppLocalizations {
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
+    Locale('az'),
     Locale('de'),
     Locale('en'),
     Locale('fr'),
     Locale('hi'),
+    Locale('ja'),
+    Locale('ky'),
     Locale('nl'),
     Locale('ru'),
     Locale('tr'),
+    Locale('ug'),
     Locale('ur')
   ];
 
@@ -415,6 +423,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No groups added yet. Add a group name above.'**
   String get noGroupsAdded;
+
+  /// Donate button text
+  ///
+  /// In en, this message translates to:
+  /// **'Donate'**
+  String get donate;
+
+  /// Donate section description
+  ///
+  /// In en, this message translates to:
+  /// **'Support the development of this app'**
+  String get donateDescription;
+
+  /// Donate button label
+  ///
+  /// In en, this message translates to:
+  /// **'Buy Me a Coffee'**
+  String get donateButton;
 }
 
 class _AppLocalizationsDelegate
@@ -428,13 +454,17 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) => <String>[
+        'az',
         'de',
         'en',
         'fr',
         'hi',
+        'ja',
+        'ky',
         'nl',
         'ru',
         'tr',
+        'ug',
         'ur'
       ].contains(locale.languageCode);
 
@@ -445,6 +475,8 @@ class _AppLocalizationsDelegate
 AppLocalizations lookupAppLocalizations(Locale locale) {
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
+    case 'az':
+      return AppLocalizationsAz();
     case 'de':
       return AppLocalizationsDe();
     case 'en':
@@ -453,12 +485,18 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
       return AppLocalizationsFr();
     case 'hi':
       return AppLocalizationsHi();
+    case 'ja':
+      return AppLocalizationsJa();
+    case 'ky':
+      return AppLocalizationsKy();
     case 'nl':
       return AppLocalizationsNl();
     case 'ru':
       return AppLocalizationsRu();
     case 'tr':
       return AppLocalizationsTr();
+    case 'ug':
+      return AppLocalizationsUg();
     case 'ur':
       return AppLocalizationsUr();
   }

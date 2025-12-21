@@ -173,4 +173,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noGroupsAdded => 'No groups added yet. Add a group name above.';
+
+  @override
+  String get donate => 'Donate';
+
+  @override
+  String get donateDescription => 'Support the development of this app';
+
+  @override
+  String get donateButton => 'Buy Me a Coffee';
 }

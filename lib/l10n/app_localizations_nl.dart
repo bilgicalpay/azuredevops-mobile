@@ -12,165 +12,175 @@ class AppLocalizationsNl extends AppLocalizations {
   String get appTitle => 'Azure DevOps';
 
   @override
-  String get settings => 'Settings';
+  String get settings => 'Instellingen';
 
   @override
-  String get wikiSettings => 'Wiki Settings';
+  String get wikiSettings => 'Wiki Instellingen';
 
   @override
   String get wikiSettingsDescription =>
-      'Enter the URL of the Azure DevOps wiki file. This wiki content will be displayed on the home page.';
+      'Voer de URL van het Azure DevOps wiki-bestand in. Deze wiki-inhoud wordt op de startpagina weergegeven.';
 
   @override
   String get wikiUrl => 'Wiki URL';
 
   @override
-  String get save => 'Save';
+  String get save => 'Opslaan';
 
   @override
-  String get marketSettings => 'Market Settings';
+  String get marketSettings => 'Markt Instellingen';
 
   @override
   String get marketSettingsDescription =>
-      'Enter the IIS static directory URL. APK and IPA files will be listed and downloadable from this directory.';
+      'Voer de URL van de IIS statische directory in. APK- en IPA-bestanden worden uit deze directory weergegeven en gedownload.';
 
   @override
-  String get marketUrl => 'Market URL';
+  String get marketUrl => 'Markt URL';
 
   @override
-  String get notificationSettings => 'Notification Settings';
+  String get notificationSettings => 'Melding Instellingen';
 
   @override
-  String get controlFrequency => 'Control Frequency';
+  String get controlFrequency => 'Controle Frequentie';
 
   @override
-  String get pollingInterval => 'Polling Interval (seconds)';
+  String get pollingInterval => 'Polling Interval (seconden)';
 
   @override
-  String get pollingIntervalHelper => 'Between 5-300 seconds';
+  String get pollingIntervalHelper => 'Tussen 5-300 seconden';
 
   @override
-  String get fast => 'Fast (10s)';
+  String get fast => 'Snel (10s)';
 
   @override
-  String get normal => 'Normal (15s)';
+  String get normal => 'Normaal (15s)';
 
   @override
-  String get slow => 'Slow (30s)';
+  String get slow => 'Langzaam (30s)';
 
   @override
-  String get notificationTypes => 'Notification Types';
+  String get notificationTypes => 'Melding Typen';
 
   @override
-  String get notifyOnFirstAssignment => 'Notification on First Assignment';
+  String get notifyOnFirstAssignment => 'Melding bij Eerste Toewijzing';
 
   @override
   String get notifyOnFirstAssignmentDescription =>
-      'Send notification only when first assigned to me';
+      'Melding alleen verzenden bij eerste toewijzing aan mij';
 
   @override
-  String get notifyOnAllUpdates => 'Notification on All Updates';
+  String get notifyOnAllUpdates => 'Melding bij Alle Updates';
 
   @override
   String get notifyOnAllUpdatesDescription =>
-      'Send notification when work items assigned to me are updated';
+      'Melding verzenden wanneer aan mij toegewezen werkitems worden bijgewerkt';
 
   @override
-  String get notifyOnHotfixOnly => 'Only Hotfix';
+  String get notifyOnHotfixOnly => 'Alleen Hotfix';
 
   @override
   String get notifyOnHotfixOnlyDescription =>
-      'Notification for work items of Hotfix type only';
+      'Melding alleen voor werkitems van het type Hotfix';
 
   @override
-  String get notifyOnGroupAssignments => 'Notification on Group Assignments';
+  String get notifyOnGroupAssignments => 'Melding bij Groepstoewijzingen';
 
   @override
   String get notifyOnGroupAssignmentsDescription =>
-      'Send notification when assignments are made to specified groups';
+      'Melding verzenden wanneer toewijzingen worden gemaakt aan opgegeven groepen';
 
   @override
-  String get groupName => 'Group Name';
+  String get groupName => 'Groepsnaam';
 
   @override
-  String get groupNameHint => 'E.g: Developers, QA Team';
+  String get groupNameHint => 'Bijv: Ontwikkelaars, QA Team';
 
   @override
-  String get smartwatchNotifications => 'Smartwatch Notifications';
+  String get smartwatchNotifications => 'Smartwatch Meldingen';
 
   @override
   String get smartwatchNotificationsDescription =>
-      'Send notifications to smartwatches (only on first assignment)';
+      'Meldingen naar smartwatches verzenden (alleen bij eerste toewijzing)';
 
   @override
-  String get onCallMode => 'On-Call Mode';
+  String get onCallMode => 'Dienstmodus';
 
   @override
   String get onCallModeDescription =>
-      'In on-call mode, notifications become more aggressive and unread notifications are refreshed 3 times.';
+      'In dienstmodus worden meldingen agressiever en ongelezen meldingen worden 3 keer vernieuwd.';
 
   @override
-  String get onCallModePhone => 'On-Call Mode for Phone';
+  String get onCallModePhone => 'Dienstmodus voor Telefoon';
 
   @override
-  String get onCallModePhoneDescription => 'Aggressive notifications on phone';
+  String get onCallModePhoneDescription => 'Agressieve meldingen op telefoon';
 
   @override
-  String get onCallModeWatch => 'On-Call Mode for Smart Watch';
+  String get onCallModeWatch => 'Dienstmodus voor Smartwatch';
 
   @override
-  String get onCallModeWatchDescription =>
-      'Aggressive notifications on smartwatch';
+  String get onCallModeWatchDescription => 'Agressieve meldingen op smartwatch';
 
   @override
-  String get vacationMode => 'Vacation Mode';
+  String get vacationMode => 'Vakantiemodus';
 
   @override
   String get vacationModeDescription =>
-      'No notifications are received in vacation mode.';
+      'In vakantiemodus worden geen meldingen ontvangen.';
 
   @override
-  String get vacationModePhone => 'Vacation Mode for Phone';
+  String get vacationModePhone => 'Vakantiemodus voor Telefoon';
 
   @override
-  String get vacationModePhoneDescription => 'Disable notifications on phone';
+  String get vacationModePhoneDescription =>
+      'Meldingen op telefoon uitschakelen';
 
   @override
-  String get vacationModeWatch => 'Vacation Mode for Smart Watch';
+  String get vacationModeWatch => 'Vakantiemodus voor Smartwatch';
 
   @override
   String get vacationModeWatchDescription =>
-      'Disable notifications on smartwatch';
+      'Meldingen op smartwatch uitschakelen';
 
   @override
   String get serverUrl => 'Server URL';
 
   @override
-  String get collection => 'Collection';
+  String get collection => 'Collectie';
 
   @override
-  String get language => 'Language';
+  String get language => 'Taal';
 
   @override
-  String get selectLanguage => 'Select Language';
+  String get selectLanguage => 'Selecteer Taal';
 
   @override
   String get languageDescription =>
-      'Choose your preferred language. The app will use your device language by default.';
+      'Kies uw voorkeurstaal. De app gebruikt standaard de taal van uw apparaat.';
 
   @override
-  String get close => 'Close';
+  String get close => 'Sluiten';
 
   @override
-  String get settingsSaved => 'Settings saved';
+  String get settingsSaved => 'Instellingen opgeslagen';
 
   @override
-  String get invalidUrl => 'Please enter a valid URL';
+  String get invalidUrl => 'Voer een geldige URL in';
 
   @override
   String get invalidPollingInterval =>
-      'Polling interval must be between 5-300 seconds';
+      'Polling interval moet tussen 5-300 seconden liggen';
 
   @override
-  String get noGroupsAdded => 'No groups added yet. Add a group name above.';
+  String get noGroupsAdded =>
+      'Nog geen groepen toegevoegd. Voeg hierboven een groepsnaam toe.';
+
+  @override
+  String get donate => 'Doneren';
+
+  @override
+  String get donateDescription => 'Ondersteun de ontwikkeling van deze app';
+
+  @override
+  String get donateButton => 'Koop me een Koffie';
 }

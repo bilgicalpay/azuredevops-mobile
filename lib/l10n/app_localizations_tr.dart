@@ -173,4 +173,13 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get noGroupsAdded =>
       'Henüz grup eklenmedi. Yukarıdan grup adı girerek ekleyin.';
+
+  @override
+  String get donate => 'Bağış Yap';
+
+  @override
+  String get donateDescription => 'Bu uygulamanın geliştirilmesini destekleyin';
+
+  @override
+  String get donateButton => 'Bana Bir Kahve Ismarla';
 }
