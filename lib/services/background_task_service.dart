@@ -175,6 +175,20 @@ class BackgroundTaskService {
   /// Check for work item changes
   Future<void> _checkForChanges() async {
     try {
+      // Initialize storage service if not already done
+      if (_storageService == null) {
+        _storageService = StorageService();
+        await _storageService!.init();
+      }
+      
+      // TATİL MODU KONTROLÜ - Eğer hem telefon hem saat için tatil modu aktifse, hiçbir kontrol yapma
+      final vacationModePhone = _storageService!.getVacationModePhone();
+      final vacationModeWatch = _storageService!.getVacationModeWatch();
+      if (vacationModePhone && vacationModeWatch) {
+        print('🏖️ [BackgroundTaskService] Skipping all checks: Vacation mode enabled for both phone and watch');
+        return;
+      }
+      
       final prefs = await SharedPreferences.getInstance();
       final serverUrl = prefs.getString('server_url');
       final collection = prefs.getString('collection');
