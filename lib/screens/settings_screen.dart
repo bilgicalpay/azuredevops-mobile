@@ -64,10 +64,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final storage = Provider.of<StorageService>(context, listen: false);
     
     // Demo için default değerler
-    const String defaultWikiUrl = 'https://devops.higgscloud.com/Dev/_git/demo?path=/README.md';
-    const String defaultMarketUrl = 'https://devops.higgscloud.com/_static/market';
-    const String defaultServerUrl = 'https://devops.higgscloud.com/Dev';
-    const String defaultToken = 's6znafrrzv35ns24nxpzayw7dt2ro2zn6yaoyp5f7mls23ceq5dq';
+    const String defaultWikiUrl = 'https://dev.azure.com/hygieia-devops/DevOps-Turkiye/_wiki/wikis/README.md/3/README';
+    const String defaultMarketUrl = 'https://ftp.kaist.ac.kr/apache/';
+    const String defaultServerUrl = 'https://dev.azure.com/hygieia-devops/DevOps-Turkiye';
+    const String defaultToken = '4mBp07NH52kYCuCBREGmTvdwBysraioeTcVf8Tluk9OmzohsdJGAJQQJ99BLACAAAAAAAAAAAAASAZDO1lgo';
     
     // Wiki URL - eğer storage'da yoksa default değeri kullan ve kaydet
     final wikiUrl = storage.getWikiUrl();

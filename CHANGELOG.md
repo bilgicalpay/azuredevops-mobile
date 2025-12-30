@@ -2,6 +2,14 @@
 
 Bu proje [Semantic Versioning](https://semver.org/) kullanmaktadır.
 
+## [1.0.17+112] - 25-12-2025
+
+### 🔧 İyileştirmeler
+- ✅ Default ayarlar güncellendi (Server URL, Wiki URL, Market URL, Token)
+- ✅ Yeni default server: https://dev.azure.com/hygieia-devops/DevOps-Turkiye
+- ✅ Yeni default wiki: https://dev.azure.com/hygieia-devops/DevOps-Turkiye/_wiki/wikis/README.md/3/README
+- ✅ Yeni default market: https://ftp.kaist.ac.kr/apache/
+
 ## [1.0.16+111] - 24-12-2025
 
 ### 🔧 İyileştirmeler

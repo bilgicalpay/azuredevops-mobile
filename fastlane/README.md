@@ -1,67 +1,149 @@
-# Fastlane Configuration
+fastlane documentation
+----
 
-Bu klasör Flutter Android uygulaması için Fastlane yapılandırmasını içerir.
+# Installation
 
-## Kurulum
+Make sure you have the latest version of the Xcode command line tools installed:
 
-1. Fastlane'ı yükleyin:
-```bash
-# macOS
-sudo gem install fastlane
-
-# veya Homebrew ile
-brew install fastlane
+```sh
+xcode-select --install
 ```
 
-2. Android klasöründe Fastlane'ı başlatın (opsiyonel):
-```bash
-cd android
-fastlane init
+For _fastlane_ installation instructions, see [Installing _fastlane_](https://docs.fastlane.tools/#installing-fastlane)
+
+# Available Actions
+
+## Android
+
+### android build_apk
+
+```sh
+[bundle exec] fastlane android build_apk
 ```
 
-## Kullanım
+Build Android APK
 
-### Temel Komutlar
+### android build_aab
 
-```bash
-# APK build et
-fastlane android build_apk
-
-# App Bundle (AAB) build et
-fastlane android build_aab
-
-# Testleri çalıştır
-fastlane android test
-
-# Kod analizi yap
-fastlane android analyze
-
-# Beta build ve deploy
-fastlane android beta
-
-# Production build ve deploy
-fastlane android release
-
-# Temizle
-fastlane android clean
+```sh
+[bundle exec] fastlane android build_aab
 ```
 
-## Yapılandırma
+Build Android App Bundle (AAB)
 
-### Appfile
-`Appfile` dosyasında uygulama paket adını ve Google Play Store ayarlarını yapılandırın.
+### android test
 
-### Google Play Store Deploy
+```sh
+[bundle exec] fastlane android test
+```
 
-Production deploy için Google Play Store servis hesabı anahtarı gerekir:
+Run Flutter tests
 
-1. Google Play Console'da servis hesabı oluşturun
-2. JSON anahtar dosyasını indirin
-3. `Appfile` içinde `json_key_file` yolunu belirtin
-4. `Fastfile` içindeki `upload_to_play_store` satırlarının yorumunu kaldırın
+### android analyze
 
-## CI/CD Entegrasyonu
+```sh
+[bundle exec] fastlane android analyze
+```
 
-Fastlane, GitLab CI/CD, GitHub Actions ve Jenkins pipeline'larında kullanılabilir. 
-Her platform için örnek kullanım ilgili klasörlerdeki dosyalarda bulunmaktadır.
+Run Flutter analyze
 
+### android beta
+
+```sh
+[bundle exec] fastlane android beta
+```
+
+Build and deploy to internal testing
+
+### android release
+
+```sh
+[bundle exec] fastlane android release
+```
+
+Build and deploy to production
+
+### android upload_testing
+
+```sh
+[bundle exec] fastlane android upload_testing
+```
+
+Upload AAB to Alpha and Closed Testing tracks
+
+### android clean
+
+```sh
+[bundle exec] fastlane android clean
+```
+
+Clean build artifacts
+
+----
+
+
+## iOS
+
+### ios build_ipa
+
+```sh
+[bundle exec] fastlane ios build_ipa
+```
+
+Build iOS IPA
+
+### ios build_app
+
+```sh
+[bundle exec] fastlane ios build_app
+```
+
+Build iOS App
+
+### ios test
+
+```sh
+[bundle exec] fastlane ios test
+```
+
+Run Flutter tests
+
+### ios analyze
+
+```sh
+[bundle exec] fastlane ios analyze
+```
+
+Run Flutter analyze
+
+### ios beta
+
+```sh
+[bundle exec] fastlane ios beta
+```
+
+Build and deploy to TestFlight (beta)
+
+### ios release
+
+```sh
+[bundle exec] fastlane ios release
+```
+
+Build and deploy to App Store (production)
+
+### ios clean
+
+```sh
+[bundle exec] fastlane ios clean
+```
+
+Clean build artifacts
+
+----
+
+This README.md is auto-generated and will be re-generated every time [_fastlane_](https://fastlane.tools) is run.
+
+More information about _fastlane_ can be found on [fastlane.tools](https://fastlane.tools).
+
+The documentation of _fastlane_ can be found on [docs.fastlane.tools](https://docs.fastlane.tools).
