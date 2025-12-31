@@ -173,9 +173,11 @@ class WikiService {
           String extractedCollection = '';
           String project = '';
           
-          // Extract collection and project from path segments
+          // Extract organization/collection and project from path segments
+          // For Azure DevOps Services: /{org}/{project}/_wiki/wikis/...
+          // For Azure DevOps Server: /{collection}/{project}/_wiki/wikis/...
           if (uri.pathSegments.length >= 2) {
-            extractedCollection = uri.pathSegments[0];
+            extractedCollection = uri.pathSegments[0]; // org or collection
             project = uri.pathSegments[1];
           }
           
@@ -189,17 +191,30 @@ class WikiService {
             
             // Try multiple wiki API endpoints
             if (pagePath.isNotEmpty) {
-              // Try HTML endpoint first (rendered HTML content)
+              // Try text endpoint first (returns raw markdown/text - this is what we want!)
               final encodedPagePath = Uri.encodeComponent(pagePath);
-              apiUrl = '${uri.scheme}://${uri.host}/$finalCollection/$project/_apis/wiki/wikis/$wikiName/pages/$encodedPagePath?includeContent=true&api-version=7.0';
-              debugPrint('🔄 [WIKI] Converted wiki URL to HTML API: $apiUrl');
-              // Also try with format=html parameter
+              // For Azure DevOps Services (dev.azure.com), we need to use the correct format
+              // URL: /{org}/{project}/_apis/wiki/wikis/{wikiName}/pages/{pagePath}/text
+              apiUrl = '${uri.scheme}://${uri.host}/$finalCollection/$project/_apis/wiki/wikis/$wikiName/pages/$encodedPagePath/text?api-version=7.0';
+              debugPrint('🔄 [WIKI] Converted wiki URL to text API (raw markdown): $apiUrl');
+              
+              // Text endpoint should be first in attempts (highest priority for raw markdown)
+              attempts.insert(0, {
+                'url': apiUrl,
+                'accept': 'text/plain',
+              });
               attempts.add({
-                'url': '${uri.scheme}://${uri.host}/$finalCollection/$project/_apis/wiki/wikis/$wikiName/pages/$encodedPagePath?includeContent=true&format=html&api-version=7.0',
-                'accept': 'text/html',
+                'url': apiUrl,
+                'accept': 'text/markdown',
+              });
+              
+              // Also try pages endpoint with includeContent (returns JSON with content field) as fallback
+              attempts.add({
+                'url': '${uri.scheme}://${uri.host}/$finalCollection/$project/_apis/wiki/wikis/$wikiName/pages/$encodedPagePath?includeContent=true&api-version=7.0',
+                'accept': 'application/json',
               });
             } else {
-              // Try pages endpoint
+              // Try pages endpoint (for listing pages)
               apiUrl = '${uri.scheme}://${uri.host}/$finalCollection/$project/_apis/wiki/wikis/$wikiName/pages?api-version=7.0';
               debugPrint('🔄 [WIKI] Converted wiki URL to pages API: $apiUrl');
             }
@@ -280,20 +295,9 @@ class WikiService {
         }
       }
       
-      // Add API URL first if converted (prefer API endpoints)
-      if (apiUrl != null) {
-        // Try text endpoint first (if it's a text API) - this returns plain text/markdown
-        if (apiUrl.contains('/text?')) {
-          attempts.add({
-            'url': apiUrl,
-            'accept': 'text/plain',
-          });
-          // Also try with markdown accept header
-          attempts.add({
-            'url': apiUrl,
-            'accept': 'text/markdown',
-          });
-        }
+      // Note: Text endpoint apiUrl has already been added to attempts list above (with insert(0, ...))
+      // Only add pages endpoint apiUrl here if it hasn't been added yet
+      if (apiUrl != null && !apiUrl.contains('/text?')) {
         // Try JSON endpoint (for pages API)
         attempts.add({
           'url': apiUrl,
@@ -342,6 +346,12 @@ class WikiService {
             String? content;
             if (response.data is String) {
               content = response.data as String;
+              // Check if we got HTML page instead of markdown (JavaScript disabled message)
+              if (content.contains('JavaScript is Disabled') || 
+                  (content.contains('javascript') && content.contains('<div') && content.length < 500)) {
+                debugPrint('⚠️ [WIKI] Got HTML page instead of markdown, skipping this attempt');
+                continue; // Skip this attempt and try next one
+              }
               debugPrint('✅ [WIKI] Got string content (${content.length} chars)');
             } else if (response.data is Map) {
               // Try to extract content from JSON response

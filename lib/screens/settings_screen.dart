@@ -66,7 +66,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _loadSettings() async {
     final storage = Provider.of<StorageService>(context, listen: false);
     
-    // Demo için default değerler
+    // DEMO/DEVELOPMENT ONLY: Default değerler sadece ilk açılışta öneri olarak gösterilir
+    // Production build'lerde bu değerler kullanılmamalı
+    // Kullanıcı token'ları FlutterSecureStorage'da güvenli şekilde saklanıyor
     const String defaultWikiUrl = 'https://dev.azure.com/hygieia-devops/DevOps-Turkiye/_wiki/wikis/README.md/3/README';
     const String defaultMarketUrl = 'https://ftp.kaist.ac.kr/apache/';
     const String defaultServerUrl = 'https://dev.azure.com/hygieia-devops';

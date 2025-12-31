@@ -42,22 +42,26 @@ class _LoginScreenState extends State<LoginScreen> {
     final storage = Provider.of<StorageService>(context, listen: false);
     final authService = Provider.of<AuthService>(context, listen: false);
     
-    // Demo için default değerler
+    // DEMO/DEVELOPMENT ONLY: Default değerler sadece ilk açılışta öneri olarak gösterilir
+    // Production build'lerde bu değerler kullanılmamalı
+    // Kullanıcı token'ları FlutterSecureStorage'da güvenli şekilde saklanıyor
     const String defaultServerUrl = 'https://dev.azure.com/hygieia-devops';
     const String defaultToken = 'AI9TJm5RCCifo7r0YeyoMAHZuXxuUS6vAQxQyVpRsklnr5C9wSx0JQQJ99BLACAAAAAAAAAAAAASAZDO1YxI';
     
-    // Eğer storage'da server URL veya token yoksa, default değerleri yükle
+    // Eğer storage'da server URL veya token yoksa, default değerleri yükle (sadece öneri)
     final currentServerUrl = authService.serverUrl;
     final currentToken = await storage.getToken();
     
     if (currentServerUrl == null || currentToken == null) {
       // Default değerleri controller'lara yükle (kullanıcı görebilir ve değiştirebilir)
+      // NOT: Bu değerler sadece demo/development amaçlıdır
       _serverUrlController.text = defaultServerUrl;
       _tokenController.text = defaultToken;
     } else {
-      // Mevcut değerleri yükle
+      // Mevcut değerleri yükle (güvenli storage'dan)
       _serverUrlController.text = currentServerUrl;
-      _tokenController.text = currentToken;
+      // Token güvenlik nedeniyle gösterilmez, kullanıcı yeniden girmelidir
+      _tokenController.text = '';
     }
   }
 

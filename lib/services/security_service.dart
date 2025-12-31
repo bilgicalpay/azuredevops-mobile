@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:root_detector/root_detector.dart';
 import 'package:logging/logging.dart';
 
@@ -13,9 +14,9 @@ class SecurityService {
     // Setup logging
     Logger.root.level = Level.INFO;
     Logger.root.onRecord.listen((record) {
-      // Log to console in debug mode
+      // Log to console in debug mode only (production'da otomatik devre dışı)
       if (record.level >= Level.WARNING) {
-        print('${record.level.name}: ${record.time}: ${record.message}');
+        debugPrint('${record.level.name}: ${record.time}: ${record.message}');
       }
     });
     
