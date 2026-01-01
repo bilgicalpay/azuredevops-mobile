@@ -1,8 +1,8 @@
 # AzureDevOps Mobile App
 
 **Geliştirici:** Alpay Bilgiç  
-**Versiyon:** 1.0.17+112  
-**Tarih:** 25-12-2025
+**Versiyon:** 1.0.22+120  
+**Tarih:** 27-01-2025
 
 ## 📱 Genel Bakış
 
@@ -689,4 +689,4 @@ Ticari kullanım için lütfen iletişime geçin:
 
 **Geliştirici:** Alpay Bilgiç  
 **Son Güncelleme:** 25-12-2025  
-**Versiyon:** 1.0.17+112
+**Versiyon:** 1.0.22+120

@@ -66,7 +66,6 @@ echo "" >> build/sbom/sbom.txt
 echo "Build Information:" >> build/sbom/sbom.txt
 FLUTTER_PATH="/Users/alpaybilgic/flutter/bin/flutter"
 if [ -f "$FLUTTER_PATH" ]; then
-  if [ -f "$FLUTTER_PATH" ]; then
   echo "  - Flutter SDK: $($FLUTTER_PATH --version | grep -i 'flutter' | head -1)" >> build/sbom/sbom.txt
   echo "  - Dart SDK: $($FLUTTER_PATH --version | grep -i 'dart' | head -1)" >> build/sbom/sbom.txt
 else
@@ -78,4 +77,3 @@ echo "  - Build Date: $(date)" >> build/sbom/sbom.txt
 echo "✅ SBOM generated:"
 echo "  - build/sbom/spdx.json (SPDX format)"
 echo "  - build/sbom/sbom.txt (Text format)"
-

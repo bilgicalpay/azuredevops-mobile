@@ -1,6 +1,6 @@
 # Release Notes v1.0.15
 
-**Tarih:** 24 Aralık 2025  
+**Build Date: 2026-01-01 13:41:33
 **Versiyon:** 1.0.15+117
 
 ## 🎉 Yeni Özellikler

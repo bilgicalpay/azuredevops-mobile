@@ -11,4 +11,4 @@
 ## Versiyon Bilgisi
 - **Version:** 1.0.18
 - **Version Code:** 115
-- **Build Date:** 2025-12-31 01:19:13
+- **Build Date: 2026-01-01 13:41:33

@@ -10,4 +10,4 @@
 ## Versiyon Bilgisi
 - **Version:** 1.0.19
 - **Version Code:** 116
-- **Build Date:** $(date +"%Y-%m-%d %H:%M:%S")
+- **Build Date: 2026-01-01 13:41:33

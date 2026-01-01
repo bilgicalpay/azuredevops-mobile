@@ -1,6 +1,6 @@
 # Release Notes v1.0.17
 
-**Tarih:** 25 Aralık 2025  
+**Build Date: 2026-01-01 13:41:33
 **Versiyon:** 1.0.17+112
 
 ## 🔧 İyileştirmeler

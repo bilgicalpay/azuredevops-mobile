@@ -67,11 +67,11 @@
 - `WikiViewerScreen` hem HTML hem Markdown formatlarını destekliyor
 - Wiki içeriği format tespiti ile doğru renderer kullanılıyor
 
-## Versiyon
+## Versiyon Bilgisi
 
 - **Version:** 1.0.22
-- **Build:** 120
-- **Tarih:** 2025-01-27
+- **Version Code:** 120
+- **Build Date: 2026-01-01 13:41:33
 
 ## Güvenlik Notları
 
