@@ -86,7 +86,18 @@ app.*.map.json
 **/android/local.properties
 **/android/**/GeneratedPluginRegistrant.java
 **/android/key.properties
+**/android/keystore.properties
 *.jks
+*.keystore
+
+# Google Play Console Service Account Keys
+service-account-key.json
+*service-account*.json
+*google-play*.json
+*android-publisher*.json
+fastlane/service-account-key.json
+fastlane/*service-account*.json
+*.json.key
 
 # Build artifacts - APK and IPA files
 *.apk

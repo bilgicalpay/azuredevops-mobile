@@ -10,8 +10,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:azuredevops_onprem/l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/foundation.dart';
 import '../services/storage_service.dart';
 import '../services/auth_service.dart';
+import '../services/wiki_service.dart';
 
 /// Ayarlar ekranı widget'ı
 /// Uygulama ayarlarını yönetir
@@ -27,6 +29,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final _pollingIntervalController = TextEditingController();
   final _marketRepoUrlController = TextEditingController();
   final _groupController = TextEditingController();
+  final _companyNameController = TextEditingController();
+  final _companyLogoUrlController = TextEditingController();
   bool _isLoading = false;
   int _pollingInterval = 15;
   bool _notifyOnFirstAssignment = false;
@@ -39,6 +43,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _onCallModeWatch = false;
   bool _vacationModePhone = false;
   bool _vacationModeWatch = false;
+  String _logoDisplayMode = 'auto';
+  String _themeMode = 'system';
 
   @override
   void initState() {
@@ -52,17 +58,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _pollingIntervalController.dispose();
     _marketRepoUrlController.dispose();
     _groupController.dispose();
+    _companyNameController.dispose();
+    _companyLogoUrlController.dispose();
     super.dispose();
   }
 
   Future<void> _loadSettings() async {
     final storage = Provider.of<StorageService>(context, listen: false);
     
-    // Demo için default değerler
-    const String defaultWikiUrl = 'https://devops.higgscloud.com/Dev/_git/demo?path=/README.md';
-    const String defaultMarketUrl = 'https://devops.higgscloud.com/_static/market';
-    const String defaultServerUrl = 'https://devops.higgscloud.com/Dev';
-    const String defaultToken = 's6znafrrzv35ns24nxpzayw7dt2ro2zn6yaoyp5f7mls23ceq5dq';
+    // DEMO/DEVELOPMENT ONLY: Default değerler sadece ilk açılışta öneri olarak gösterilir
+    // Production build'lerde bu değerler kullanılmamalı
+    // Kullanıcı token'ları FlutterSecureStorage'da güvenli şekilde saklanıyor
+    const String defaultWikiUrl = 'https://dev.azure.com/hygieia-devops/DevOps-Turkiye/_wiki/wikis/README.md/3/README';
+    const String defaultMarketUrl = 'https://ftp.kaist.ac.kr/apache/';
+    const String defaultServerUrl = 'https://dev.azure.com/hygieia-devops';
+    const String defaultToken = 'AI9TJm5RCCifo7r0YeyoMAHZuXxuUS6vAQxQyVpRsklnr5C9wSx0JQQJ99BLACAAAAAAAAAAAAASAZDO1YxI';
     
     // Wiki URL - eğer storage'da yoksa default değeri kullan ve kaydet
     final wikiUrl = storage.getWikiUrl();
@@ -118,6 +128,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final vacationModePhone = storage.getVacationModePhone();
     final vacationModeWatch = storage.getVacationModeWatch();
     
+    // Load company/logo settings
+    final logoDisplayMode = storage.getLogoDisplayMode();
+    final companyName = storage.getCompanyName() ?? '';
+    final companyLogoUrl = storage.getCompanyLogoUrl() ?? '';
+    
     setState(() {
       _pollingInterval = interval;
       _pollingIntervalController.text = interval.toString();
@@ -131,6 +146,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _onCallModeWatch = onCallModeWatch;
       _vacationModePhone = vacationModePhone;
       _vacationModeWatch = vacationModeWatch;
+      _logoDisplayMode = logoDisplayMode;
+      _companyNameController.text = companyName;
+      _companyLogoUrlController.text = companyLogoUrl;
     });
   }
 
@@ -210,6 +228,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await storage.setVacationModePhone(_vacationModePhone);
     await storage.setVacationModeWatch(_vacationModeWatch);
     
+    // Logo/şirket ayarlarını kaydet
+    await storage.setLogoDisplayMode(_logoDisplayMode);
+    final companyName = _companyNameController.text.trim();
+    await storage.setCompanyName(companyName.isEmpty ? null : companyName);
+    final companyLogoUrl = _companyLogoUrlController.text.trim();
+    await storage.setCompanyLogoUrl(companyLogoUrl.isEmpty ? null : companyLogoUrl);
+    
+    // Save theme mode
+    await storage.setThemeMode(_themeMode);
+    
     setState(() => _isLoading = false);
     
     if (!mounted) return;
@@ -236,6 +264,138 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() {
       _notificationGroups.remove(groupName);
     });
+  }
+
+  /// Browse and select wiki from projects
+  Future<void> _browseWikis() async {
+    try {
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final storage = Provider.of<StorageService>(context, listen: false);
+      final token = await authService.getAuthToken();
+      
+      if (token == null || authService.serverUrl == null) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Authentication required')),
+        );
+        return;
+      }
+
+      setState(() => _isLoading = true);
+
+      final wikiService = WikiService();
+      
+      // Get projects
+      final projects = await wikiService.getProjects(
+        serverUrl: authService.serverUrl!,
+        token: token,
+        collection: storage.getCollection(),
+      );
+
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      if (projects.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No projects found')),
+        );
+        return;
+      }
+
+      // Show project selection dialog
+      final selectedProject = await showDialog<Map<String, String>>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Select Project'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: projects.length,
+              itemBuilder: (context, index) {
+                final project = projects[index];
+                return ListTile(
+                  title: Text(project['name'] ?? ''),
+                  onTap: () => Navigator.of(context).pop(project),
+                );
+              },
+            ),
+          ),
+        ),
+      );
+
+      if (selectedProject == null || !mounted) return;
+
+      // Get wikis for selected project
+      setState(() => _isLoading = true);
+      final wikis = await wikiService.getWikis(
+        serverUrl: authService.serverUrl!,
+        token: token,
+        project: selectedProject['name'] ?? '',
+        collection: storage.getCollection(),
+      );
+
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      if (wikis.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No wikis found in this project')),
+        );
+        return;
+      }
+
+      // Show wiki selection dialog
+      final selectedWiki = await showDialog<Wiki>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Select Wiki (${selectedProject['name']})'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: wikis.length,
+              itemBuilder: (context, index) {
+                final wiki = wikis[index];
+                return ListTile(
+                  title: Text(wiki.name),
+                  subtitle: Text(wiki.projectName),
+                  onTap: () => Navigator.of(context).pop(wiki),
+                );
+              },
+            ),
+          ),
+        ),
+      );
+
+      if (selectedWiki == null || !mounted) return;
+
+      // Build wiki URL
+      final cleanUrl = authService.serverUrl!.endsWith('/') 
+          ? authService.serverUrl!.substring(0, authService.serverUrl!.length - 1) 
+          : authService.serverUrl!;
+      final collection = storage.getCollection();
+      final baseUrl = (collection != null && collection.isNotEmpty)
+          ? '$cleanUrl/$collection'
+          : cleanUrl;
+      
+      // Wiki URL format: {baseUrl}/{project}/_wiki/wikis/{wikiName}
+      final wikiUrl = '$baseUrl/${selectedWiki.projectName}/_wiki/wikis/${selectedWiki.name}';
+      
+      setState(() {
+        _wikiUrlController.text = wikiUrl;
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ [Settings] Error browsing wikis: $e');
+      }
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
+      }
+    }
   }
 
   @override
@@ -273,15 +433,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       style: const TextStyle(fontSize: 14, color: Colors.grey),
                     ),
                     const SizedBox(height: 16),
-                    TextField(
-                      controller: _wikiUrlController,
-                      decoration: InputDecoration(
-                        labelText: l10n.wikiUrl,
-                        hintText: l10n.wikiUrlHint,
-                        border: const OutlineInputBorder(),
-                        prefixIcon: const Icon(Icons.link),
-                      ),
-                      keyboardType: TextInputType.url,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _wikiUrlController,
+                            decoration: InputDecoration(
+                              labelText: l10n.wikiUrl,
+                              hintText: l10n.wikiUrlHint,
+                              border: const OutlineInputBorder(),
+                              prefixIcon: const Icon(Icons.link),
+                            ),
+                            keyboardType: TextInputType.url,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton.icon(
+                          onPressed: _isLoading ? null : _browseWikis,
+                          icon: const Icon(Icons.folder_open),
+                          label: const Text('Browse'),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton(
@@ -293,6 +465,207 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : Text(l10n.save),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Logo/Şirket Ayarları Kartı
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.business, color: Colors.blue),
+                        const SizedBox(width: 8),
+                        Text(
+                          l10n.companySettings,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      l10n.companySettingsDescription,
+                      style: const TextStyle(fontSize: 14, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    // Logo gösterim modu
+                    Text(
+                      l10n.logoDisplayMode,
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(height: 8),
+                    SegmentedButton<String>(
+                      segments: [
+                        ButtonSegment(
+                          value: 'auto',
+                          label: Text(l10n.logoModeAuto),
+                          icon: const Icon(Icons.auto_awesome),
+                        ),
+                        ButtonSegment(
+                          value: 'custom',
+                          label: Text(l10n.logoModeCustom),
+                          icon: const Icon(Icons.edit),
+                        ),
+                        ButtonSegment(
+                          value: 'none',
+                          label: Text(l10n.logoModeNone),
+                          icon: const Icon(Icons.visibility_off),
+                        ),
+                      ],
+                      selected: {_logoDisplayMode},
+                      onSelectionChanged: (Set<String> selection) {
+                        setState(() {
+                          _logoDisplayMode = selection.first;
+                        });
+                      },
+                    ),
+                    
+                    // Otomatik modda tespit edilen şirket adını göster
+                    if (_logoDisplayMode == 'auto') ...[
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.info_outline, color: Colors.blue.shade700),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                '${l10n.detectedCompany}: ${storage.getCompanyNameFromServerUrl().isEmpty ? l10n.notDetected : storage.getCompanyNameFromServerUrl()}',
+                                style: TextStyle(color: Colors.blue.shade700),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    
+                    // Özel modda şirket adı ve logo URL girişi
+                    if (_logoDisplayMode == 'custom') ...[
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _companyNameController,
+                        decoration: InputDecoration(
+                          labelText: l10n.companyName,
+                          hintText: l10n.companyNameHint,
+                          border: const OutlineInputBorder(),
+                          prefixIcon: const Icon(Icons.business),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _companyLogoUrlController,
+                        decoration: InputDecoration(
+                          labelText: l10n.companyLogoUrl,
+                          hintText: l10n.companyLogoUrlHint,
+                          border: const OutlineInputBorder(),
+                          prefixIcon: const Icon(Icons.image),
+                        ),
+                        keyboardType: TextInputType.url,
+                      ),
+                      // Logo önizleme
+                      if (_companyLogoUrlController.text.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey.shade300),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 40,
+                                height: 40,
+                                child: Image.network(
+                                  _companyLogoUrlController.text,
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Icon(Icons.broken_image, color: Colors.red.shade300);
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  l10n.logoPreview,
+                                  style: TextStyle(color: Colors.grey.shade600),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Theme Mode Selection
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.palette, color: Colors.purple),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'Tema',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Uygulama temasını seçin',
+                      style: TextStyle(fontSize: 14, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 16),
+                    SegmentedButton<String>(
+                      segments: [
+                        ButtonSegment(
+                          value: 'light',
+                          label: const Text('Açık'),
+                          icon: const Icon(Icons.light_mode),
+                        ),
+                        ButtonSegment(
+                          value: 'dark',
+                          label: const Text('Koyu'),
+                          icon: const Icon(Icons.dark_mode),
+                        ),
+                        ButtonSegment(
+                          value: 'system',
+                          label: const Text('Sistem'),
+                          icon: const Icon(Icons.brightness_auto),
+                        ),
+                      ],
+                      selected: {_themeMode},
+                      onSelectionChanged: (Set<String> selection) {
+                        setState(() {
+                          _themeMode = selection.first;
+                        });
+                      },
                     ),
                   ],
                 ),
@@ -692,6 +1065,83 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 title: Text(l10n.collection),
                 subtitle: Text(
                   Provider.of<StorageService>(context).getCollection() ?? 'N/A',
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            // RDC Services Section
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(Icons.business_center, color: Colors.blue),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'RDC Hizmetleri',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Hizmetler hakkında destek almak için tıklayınız',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          try {
+                            final url = Uri.parse('https://rdc.com.tr');
+                            await launchUrl(
+                              url,
+                              mode: LaunchMode.externalApplication,
+                            );
+                          } catch (e) {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(l10n.couldNotOpenLink(e.toString())),
+                                  duration: const Duration(seconds: 3),
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        icon: const Icon(Icons.open_in_new),
+                        label: const Text('RDC Hizmetleri'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

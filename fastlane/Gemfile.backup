@@ -1,0 +1,12 @@
+source "https://rubygems.org"
+
+# Ruby 3.4+ compatibility
+gem "abbrev"
+gem "ostruct"
+
+# Use newer fastlane version that supports AAB
+gem "fastlane", ">= 2.200.0"
+
+plugins_path = File.join(File.dirname(__FILE__), 'fastlane', 'Pluginfile')
+eval_gemfile(plugins_path) if File.exist?(plugins_path)
+

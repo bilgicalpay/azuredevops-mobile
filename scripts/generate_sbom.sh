@@ -77,4 +77,3 @@ echo "  - Build Date: $(date)" >> build/sbom/sbom.txt
 echo "✅ SBOM generated:"
 echo "  - build/sbom/spdx.json (SPDX format)"
 echo "  - build/sbom/sbom.txt (Text format)"
-
